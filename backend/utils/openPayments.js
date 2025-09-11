@@ -1,4 +1,4 @@
-/////////////FUNCIONAMIENTO DE LA FUNCION/////////////
+/////////////FUNCIONAMIENTO DE OPENPAYMENTS.JS/////////////
 /////////DEBE TENER EL MISMO NOMBRE DE LA FUNCION EN EL FRONTEND/////////
 /////////SE PIDEN 3 PARAMETROS: senderWallet, receiverWallet, amount/////////
 /////////senderWallet: es la wallet del usuario que envia el pago/////////

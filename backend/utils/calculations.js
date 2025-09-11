@@ -1,4 +1,4 @@
-/////////////FUNCIONAMIENTO DE LA FUNCION/////////////
+/////////////FUNCIONAMIENTO DE CALCULATIONS.JS/////////////
 /////////DEBE TENER EL MISMO NOMBRE DE LA FUNCION EN EL FRONTEND/////////
 /////////SE PIDEN 1 PARAMETRO: monto/////////
 /////////monto: es el monto del pago/////////

@@ -1,4 +1,4 @@
-/////////////FUNCIONAMIENTO DE LA FUNCION/////////////
+/////////////FUNCIONAMIENTO DE AIMOCK.JS/////////////
 /////////DEBE TENER EL MISMO NOMBRE DE LA FUNCION EN EL FRONTEND/////////
 /////////SE PIDEN 2 PARAMETROS: amount, familyProfile/////////
 /////////amount: es el monto total disponible para asignar/////////
