@@ -33,5 +33,5 @@ async function testFullPayment() {
 }
 
 // Descomenta la que quieras probar:
-testIndividualFunctions();
-// testFullPayment();
+// testIndividualFunctions();
+testFullPayment();

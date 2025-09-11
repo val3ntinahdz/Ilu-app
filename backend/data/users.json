@@ -4,7 +4,7 @@
     "name": "Miguel García",
     "location": "Los Angeles, CA",
     "walletAddress": "https://ilp.interledger-test.dev/test1part2",
-    "keyId": "7a850b4b-be9a-45e0-8ff9-2e30ca92e311",
+    "keyId": "5e05a052-ea20-483b-b084-f1072d1ecd61",
     "privateKeyPath": "./keys/miguel-private.key",
     "totalSent": 2400,
     "avgSavingsRate": 4.2,
