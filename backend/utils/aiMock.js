@@ -61,7 +61,7 @@ function generateBudgetRecommendations(amount, familyProfile = {}) {
     };
   }
   
-  module.exports = { generateBudgetRecommendations };
+  export default { generateBudgetRecommendations };
 
 // Prueba de la función
 function probarAiMock() {
