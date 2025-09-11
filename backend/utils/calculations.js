@@ -1,4 +1,4 @@
-export const calculateBreakdown = (monto) => {
+const calculateBreakdown = (monto) => {
   const porcentajeAhorros = 4;
   const porcentajeIlu = 2;
   
@@ -19,3 +19,11 @@ export const calculateBreakdown = (monto) => {
     }
   };
 };
+//////////////cambiar esto despues/borrarlo/////////
+// Prueba con monto de 200
+const resultadoPrueba = calculateBreakdown(250);
+console.log('Resultado de la prueba con monto 250:');
+console.log(JSON.stringify(resultadoPrueba, null, 2));
+
+// Exportar la función para uso en otros archivos
+module.exports = { calculateBreakdown };
