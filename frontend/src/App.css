@@ -3,47 +3,104 @@
   --ilu-primary: #ac1a4d;
   --ilu-secondary: #d0c3f1;
   --ilu-accent1: #ab1d79;
-  --ilu-accent2: #4e2780;
-  --ilu-dark: #272030;
+  --ilu-accent2: #ac1a4d;
+  --ilu-dark: #ab1d79;
   --ilu-light: #efefe2;
 }
 
-/* Reset y configuración base */
+/* Reset completo y sobrescribir estilos de Vite */
 * {
   box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html {
+  height: 100%;
+  width: 100%;
 }
 
 body {
-  background: linear-gradient(135deg, var(--ilu-accent2) 0%, var(--ilu-dark) 100%);
+  height: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  background: linear-gradient(135deg, var(--ilu-accent2) 0%, var(--ilu-dark) 100%) !important;
   background-attachment: fixed;
+  overflow-x: hidden;
+  display: block !important;
+  place-items: unset !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  color: var(--ilu-dark) !important;
+  line-height: 1.5;
 }
 
-/* Contenedor principal del login */
+/* Sobrescribir estilos de root */
+:root {
+  color-scheme: light !important;
+  color: var(--ilu-dark) !important;
+  background-color: transparent !important;
+}
+
+/* Reset de links */
+a {
+  color: var(--ilu-primary) !important;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--ilu-accent1) !important;
+  text-decoration: underline;
+}
+
+/* Reset de headings */
+h1 {
+  font-size: 3.5rem !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Contenedor principal - sobrescribir flex de Vite */
+#root {
+  height: 100vh !important;
+  width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+/* Contenedor del login */
 .login-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px;
+  margin: 0 !important;
+  background: linear-gradient(135deg, var(--ilu-accent2) 0%, var(--ilu-dark) 100%);
+  position: relative;
 }
 
 /* Tarjeta del formulario de login */
 .login-card {
-  background: var(--ilu-light);
-  border-radius: 1rem;
-  box-shadow: 0 0.5rem 2rem rgba(39, 32, 48, 0.2);
-  padding: 2rem;
+  background: var(--ilu-light) !important;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(39, 32, 48, 0.3);
+  padding: 40px;
   width: 100%;
-  max-width: 400px;
+  max-width: 450px;
+  min-width: 320px;
   border: 2px solid var(--ilu-secondary);
   animation: slideUp 0.6s ease-out;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* Animación de entrada */
@@ -61,118 +118,135 @@ body {
 /* Logo y marca */
 .brand-logo {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
 }
 
 .brand-logo h1 {
-  color: var(--ilu-primary);
-  font-size: 3rem;
-  font-weight: bold;
-  margin: 0;
-  letter-spacing: -1px;
+  color: var(--ilu-primary) !important;
+  font-size: 3.5rem !important;
+  font-weight: bold !important;
+  margin: 0 !important;
+  letter-spacing: -2px;
+  line-height: 1.1 !important;
 }
 
 .brand-logo p {
-  color: var(--ilu-accent2);
-  font-size: 1rem;
-  margin: 0.5rem 0 0 0;
-  font-weight: 400;
+  color: var(--ilu-accent2) !important;
+  font-size: 1.1rem !important;
+  margin: 8px 0 0 0 !important;
+  font-weight: 400 !important;
 }
 
 /* Estilos para floating labels */
 .form-floating {
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 .form-floating > .form-control {
-  border: 2px solid var(--ilu-secondary);
-  border-radius: 0.75rem;
-  background-color: white;
-  color: var(--ilu-dark);
-  padding: 1rem 0.75rem;
-  height: calc(3.5rem + 2px);
-  transition: all 0.3s ease;
-  font-size: 1rem;
+  border: 2px solid var(--ilu-secondary) !important;
+  border-radius: 12px !important;
+  background-color: white !important;
+  color: var(--ilu-dark) !important;
+  padding: 15px 12px !important;
+  height: 60px !important;
+  transition: all 0.3s ease !important;
+  font-size: 16px !important;
+  width: 100% !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
 .form-floating > .form-control:focus {
-  border-color: var(--ilu-primary);
-  box-shadow: 0 0 0 0.2rem rgba(172, 26, 77, 0.15);
-  background-color: white;
-  outline: none;
+  border-color: var(--ilu-primary) !important;
+  box-shadow: 0 0 0 3px rgba(172, 26, 77, 0.15) !important;
+  background-color: white !important;
+  outline: none !important;
 }
 
 .form-floating > .form-control::placeholder {
-  color: transparent;
+  color: transparent !important;
 }
 
 .form-floating > label {
-  color: var(--ilu-accent2);
-  font-weight: 500;
-  font-size: 0.9rem;
+  color: var(--ilu-accent2) !important;
+  font-weight: 500 !important;
+  font-size: 16px !important;
+  padding: 15px 12px !important;
 }
 
 .form-floating > .form-control:focus ~ label,
 .form-floating > .form-control:not(:placeholder-shown) ~ label {
-  color: var(--ilu-primary);
+  color: var(--ilu-primary) !important;
   transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
 }
 
 /* Checkbox de recordarme */
 .form-check {
-  margin-bottom: 1.5rem;
-  padding-left: 1.5rem;
+  margin-bottom: 25px;
+  padding-left: 25px;
 }
 
 .form-check-input {
-  width: 1.2em;
-  height: 1.2em;
-  margin-left: -1.5rem;
-  border: 2px solid var(--ilu-secondary);
-  border-radius: 0.25rem;
+  width: 18px !important;
+  height: 18px !important;
+  margin-left: -25px !important;
+  border: 2px solid var(--ilu-secondary) !important;
+  border-radius: 4px !important;
 }
 
 .form-check-input:checked {
-  background-color: var(--ilu-primary);
-  border-color: var(--ilu-primary);
+  background-color: var(--ilu-primary) !important;
+  border-color: var(--ilu-primary) !important;
 }
 
 .form-check-input:focus {
-  border-color: var(--ilu-primary);
-  box-shadow: 0 0 0 0.2rem rgba(172, 26, 77, 0.15);
+  border-color: var(--ilu-primary) !important;
+  box-shadow: 0 0 0 3px rgba(172, 26, 77, 0.15) !important;
 }
 
 .form-check-label {
-  color: var(--ilu-dark);
-  font-weight: 400;
-  font-size: 0.95rem;
+  color: var(--ilu-dark) !important;
+  font-weight: 400 !important;
+  font-size: 16px !important;
   cursor: pointer;
+  margin-left: 8px;
 }
 
-/* Botón principal */
+/* Botón principal - sobrescribir estilos de Vite */
 .btn-login {
-  background-color: var(--ilu-primary);
-  border: none;
-  border-radius: 0.75rem;
-  padding: 0.8rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ilu-light);
-  transition: all 0.3s ease;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 0.25rem 0.75rem rgba(172, 26, 77, 0.3);
+  background-color: var(--ilu-primary) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 15px 24px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--ilu-light) !important;
+  transition: all 0.3s ease !important;
+  margin-bottom: 25px !important;
+  box-shadow: 0 4px 15px rgba(172, 26, 77, 0.3) !important;
+  width: 100% !important;
+  min-height: 50px !important;
+  cursor: pointer !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
 .btn-login:hover {
-  background-color: var(--ilu-accent1);
-  transform: translateY(-0.125rem);
-  box-shadow: 0 0.5rem 1rem rgba(172, 26, 77, 0.4);
-  color: var(--ilu-light);
+  background-color: var(--ilu-accent1) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(172, 26, 77, 0.4) !important;
+  color: var(--ilu-light) !important;
+  border-color: transparent !important;
 }
 
 .btn-login:active {
-  transform: translateY(0);
-  background-color: var(--ilu-accent1);
+  transform: translateY(0) !important;
+  background-color: var(--ilu-accent1) !important;
+}
+
+.btn-login:focus,
+.btn-login:focus-visible {
+  outline: 2px solid var(--ilu-primary) !important;
+  outline-offset: 2px !important;
 }
 
 /* Footer del login */
@@ -181,126 +255,172 @@ body {
 }
 
 .login-footer p {
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  margin-bottom: 8px !important;
+  font-size: 15px !important;
+  color: var(--ilu-dark) !important;
 }
 
 .login-footer a {
-  color: var(--ilu-primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
+  color: var(--ilu-primary) !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  transition: color 0.3s ease !important;
 }
 
 .login-footer a:hover {
-  color: var(--ilu-accent1);
-  text-decoration: underline;
+  color: var(--ilu-accent1) !important;
+  text-decoration: underline !important;
 }
 
 .forgot-link {
-  font-size: 0.85rem;
+  font-size: 14px !important;
 }
 
 .register-link {
-  font-weight: 600;
+  font-weight: 600 !important;
 }
 
-/* Responsividad */
-@media (max-width: 576px) {
+/* Responsividad para móviles pequeños */
+@media (max-width: 480px) {
   .login-container {
-    padding: 0.5rem;
+    padding: 15px !important;
+    min-height: 100vh !important;
   }
   
   .login-card {
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    max-width: 100%;
+    padding: 30px 25px !important;
+    border-radius: 15px !important;
+    max-width: 100% !important;
+    min-width: 280px !important;
+    margin: 10px auto !important;
   }
   
   .brand-logo h1 {
-    font-size: 2.5rem;
+    font-size: 2.8rem !important;
+    letter-spacing: -1px !important;
   }
   
   .brand-logo p {
-    font-size: 0.9rem;
+    font-size: 1rem !important;
   }
   
   .form-floating > .form-control {
-    font-size: 16px; /* Evita zoom en iOS */
-    padding: 0.875rem 0.75rem;
+    font-size: 16px !important;
+    padding: 12px 10px !important;
+    height: 55px !important;
+  }
+  
+  .form-floating > label {
+    font-size: 15px !important;
+    padding: 12px 10px !important;
   }
   
   .btn-login {
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
+    font-size: 16px !important;
+    padding: 12px 20px !important;
+    min-height: 48px !important;
+  }
+  
+  .form-check-label {
+    font-size: 15px !important;
   }
 }
 
-@media (min-width: 577px) and (max-width: 768px) {
+/* Responsividad para móviles medianos */
+@media (min-width: 481px) and (max-width: 767px) {
+  .login-container {
+    padding: 20px !important;
+  }
+  
   .login-card {
-    max-width: 450px;
-    padding: 2.5rem;
+    padding: 35px 30px !important;
+    max-width: 400px !important;
+    border-radius: 18px !important;
   }
   
   .brand-logo h1 {
-    font-size: 3.25rem;
+    font-size: 3.2rem !important;
+  }
+  
+  .brand-logo p {
+    font-size: 1.05rem !important;
   }
 }
 
-@media (min-width: 1200px) {
+/* Responsividad para tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
   .login-card {
-    max-width: 420px;
-    padding: 2.5rem;
+    max-width: 450px !important;
+    padding: 40px 35px !important;
   }
   
   .brand-logo h1 {
-    font-size: 3.5rem;
+    font-size: 3.8rem !important;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  .login-card {
+    max-width: 480px !important;
+    padding: 45px 40px !important;
+  }
+  
+  .brand-logo h1 {
+    font-size: 4rem !important;
   }
 }
 
 /* Landscape mode para móviles */
-@media (max-height: 500px) and (orientation: landscape) {
+@media (max-height: 600px) and (orientation: landscape) {
   .login-container {
-    padding: 0.5rem;
+    padding: 10px !important;
   }
   
   .login-card {
-    padding: 1rem;
-    margin: 0.5rem 0;
+    padding: 20px !important;
+    margin: 5px auto !important;
+    max-height: 90vh !important;
+    overflow-y: auto;
   }
   
   .brand-logo {
-    margin-bottom: 1rem;
+    margin-bottom: 20px !important;
+  }
+  
+  .logo-image {
+    width: 70px;
   }
   
   .brand-logo h1 {
-    font-size: 2rem;
+    font-size: 2.2rem !important;
   }
   
   .brand-logo p {
-    font-size: 0.8rem;
+    font-size: 0.9rem !important;
   }
   
   .form-floating {
-    margin-bottom: 0.75rem;
+    margin-bottom: 15px !important;
   }
   
   .form-check {
-    margin-bottom: 1rem;
+    margin-bottom: 15px !important;
   }
   
   .btn-login {
-    margin-bottom: 1rem;
+    margin-bottom: 15px !important;
+    padding: 10px 20px !important;
   }
 }
 
 /* Estados de validación */
 .form-control:invalid:not(:focus):not(:placeholder-shown) {
-  border-color: #dc3545;
+  border-color: #dc3545 !important;
 }
 
 .form-control:valid:not(:focus):not(:placeholder-shown) {
-  border-color: var(--ilu-primary);
+  border-color: var(--ilu-primary) !important;
 }
 
 /* Mejoras de accesibilidad */
@@ -312,25 +432,19 @@ body {
   }
 }
 
-/* Focus visible para navegación por teclado */
-.btn-login:focus-visible,
-.form-control:focus-visible,
-.form-check-input:focus-visible {
-  outline: 2px solid var(--ilu-primary);
-  outline-offset: 2px;
-}
-
-/* Alto contraste para mejor legibilidad */
-@media (prefers-contrast: high) {
-  .login-card {
-    border: 3px solid var(--ilu-dark);
+/* Sobrescribir media query de Vite */
+@media (prefers-color-scheme: light) {
+  :root {
+    color: var(--ilu-dark) !important;
+    background-color: transparent !important;
   }
   
-  .form-floating > .form-control {
-    border-width: 3px;
+  body {
+    background: linear-gradient(135deg, var(--ilu-accent2) 0%, var(--ilu-dark) 100%) !important;
+    color: var(--ilu-dark) !important;
   }
   
   .btn-login {
-    border: 2px solid var(--ilu-dark);
+    background-color: var(--ilu-primary) !important;
   }
 }
