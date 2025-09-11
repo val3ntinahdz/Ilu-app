@@ -1,42 +1,336 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
+/* Variables CSS con la paleta de colores exacta de Ilu */
+:root {
+  --ilu-primary: #ac1a4d;
+  --ilu-secondary: #d0c3f1;
+  --ilu-accent1: #ab1d79;
+  --ilu-accent2: #4e2780;
+  --ilu-dark: #272030;
+  --ilu-light: #efefe2;
+}
+
+/* Reset y configuración base */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, var(--ilu-accent2) 0%, var(--ilu-dark) 100%);
+  background-attachment: fixed;
+}
+
+/* Contenedor principal del login */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Tarjeta del formulario de login */
+.login-card {
+  background: var(--ilu-light);
+  border-radius: 1rem;
+  box-shadow: 0 0.5rem 2rem rgba(39, 32, 48, 0.2);
   padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  border: 2px solid var(--ilu-secondary);
+  animation: slideUp 0.6s ease-out;
+}
+
+/* Animación de entrada */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Logo y marca */
+.brand-logo {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.brand-logo h1 {
+  color: var(--ilu-primary);
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.brand-logo p {
+  color: var(--ilu-accent2);
+  font-size: 1rem;
+  margin: 0.5rem 0 0 0;
+  font-weight: 400;
+}
+
+/* Estilos para floating labels */
+.form-floating {
+  margin-bottom: 1rem;
+}
+
+.form-floating > .form-control {
+  border: 2px solid var(--ilu-secondary);
+  border-radius: 0.75rem;
+  background-color: white;
+  color: var(--ilu-dark);
+  padding: 1rem 0.75rem;
+  height: calc(3.5rem + 2px);
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.form-floating > .form-control:focus {
+  border-color: var(--ilu-primary);
+  box-shadow: 0 0 0 0.2rem rgba(172, 26, 77, 0.15);
+  background-color: white;
+  outline: none;
+}
+
+.form-floating > .form-control::placeholder {
+  color: transparent;
+}
+
+.form-floating > label {
+  color: var(--ilu-accent2);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: var(--ilu-primary);
+  transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+/* Checkbox de recordarme */
+.form-check {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.form-check-input {
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: -1.5rem;
+  border: 2px solid var(--ilu-secondary);
+  border-radius: 0.25rem;
+}
+
+.form-check-input:checked {
+  background-color: var(--ilu-primary);
+  border-color: var(--ilu-primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--ilu-primary);
+  box-shadow: 0 0 0 0.2rem rgba(172, 26, 77, 0.15);
+}
+
+.form-check-label {
+  color: var(--ilu-dark);
+  font-weight: 400;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* Botón principal */
+.btn-login {
+  background-color: var(--ilu-primary);
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ilu-light);
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(172, 26, 77, 0.3);
+}
+
+.btn-login:hover {
+  background-color: var(--ilu-accent1);
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.5rem 1rem rgba(172, 26, 77, 0.4);
+  color: var(--ilu-light);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+  background-color: var(--ilu-accent1);
+}
+
+/* Footer del login */
+.login-footer {
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.login-footer p {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.login-footer a {
+  color: var(--ilu-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.login-footer a:hover {
+  color: var(--ilu-accent1);
+  text-decoration: underline;
+}
+
+.forgot-link {
+  font-size: 0.85rem;
+}
+
+.register-link {
+  font-weight: 600;
+}
+
+/* Responsividad */
+@media (max-width: 576px) {
+  .login-container {
+    padding: 0.5rem;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .login-card {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    max-width: 100%;
+  }
+  
+  .brand-logo h1 {
+    font-size: 2.5rem;
+  }
+  
+  .brand-logo p {
+    font-size: 0.9rem;
+  }
+  
+  .form-floating > .form-control {
+    font-size: 16px; /* Evita zoom en iOS */
+    padding: 0.875rem 0.75rem;
+  }
+  
+  .btn-login {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+@media (min-width: 577px) and (max-width: 768px) {
+  .login-card {
+    max-width: 450px;
+    padding: 2.5rem;
+  }
+  
+  .brand-logo h1 {
+    font-size: 3.25rem;
   }
 }
 
-.card {
-  padding: 2em;
+@media (min-width: 1200px) {
+  .login-card {
+    max-width: 420px;
+    padding: 2.5rem;
+  }
+  
+  .brand-logo h1 {
+    font-size: 3.5rem;
+  }
 }
 
-.read-the-docs {
-  color: #888;
+/* Landscape mode para móviles */
+@media (max-height: 500px) and (orientation: landscape) {
+  .login-container {
+    padding: 0.5rem;
+  }
+  
+  .login-card {
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+  
+  .brand-logo {
+    margin-bottom: 1rem;
+  }
+  
+  .brand-logo h1 {
+    font-size: 2rem;
+  }
+  
+  .brand-logo p {
+    font-size: 0.8rem;
+  }
+  
+  .form-floating {
+    margin-bottom: 0.75rem;
+  }
+  
+  .form-check {
+    margin-bottom: 1rem;
+  }
+  
+  .btn-login {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Estados de validación */
+.form-control:invalid:not(:focus):not(:placeholder-shown) {
+  border-color: #dc3545;
+}
+
+.form-control:valid:not(:focus):not(:placeholder-shown) {
+  border-color: var(--ilu-primary);
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visible para navegación por teclado */
+.btn-login:focus-visible,
+.form-control:focus-visible,
+.form-check-input:focus-visible {
+  outline: 2px solid var(--ilu-primary);
+  outline-offset: 2px;
+}
+
+/* Alto contraste para mejor legibilidad */
+@media (prefers-contrast: high) {
+  .login-card {
+    border: 3px solid var(--ilu-dark);
+  }
+  
+  .form-floating > .form-control {
+    border-width: 3px;
+  }
+  
+  .btn-login {
+    border: 2px solid var(--ilu-dark);
+  }
 }
