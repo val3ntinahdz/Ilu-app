@@ -44,3 +44,59 @@ Remittances are fundamental for Oaxaca’s economy, providing well-being and dev
 
 ## Simple Architecture/Stack
 
+Frontend (React + Vite + Bootstrap)
+|
+v
+Backend (Node.js + Express + Open Payments)
+|
+v
+Open Payments / Interledger Services
+
+markdown
+Copiar código
+
+- The **frontend** communicates with the **backend** via REST API.  
+- The **backend** manages users, transactions, and business logic, and connects to the open payments network.  
+- The infrastructure aims to be scalable and secure, clearly separating the presentation layer from business logic.  
+
+## Essential Features
+
+- **User dashboard**: balance, transactions, and statistics visualization.  
+- **Money transfer and reception**: digital transfers between users.  
+- **Transaction history/recent transactions view**.  
+- **Automatic credit history generation**.  
+- **Recommendations and financial education** via virtual assistant.  
+- **Notification and alert management**.  
+- **User authentication and security**.  
+- **Integration with Open Payments** for low fees and open standards.  
+
+## Responsibilities
+
+| Name                  | Role / Responsibility                                      |
+|-----------------------|-------------------------------------------------------------|
+| Valentina León Hernandez | General leadership, architecture, Open Payments backend    |
+| Saúl Abigael Guerra Rivas| Main frontend, UX/UI integration                          |
+| Nahum Santa Ana Ceballos | Frontend developer, documentation                         |
+| Abraham Reyes Castillo   | Backend developer, AI simulation integration              |
+
+> *The table must be updated with the actual names and roles of the team.*  
+
+---
+
+## Project Objective
+
+Develop a web platform that allows users to receive, manage, and make use of their remittances digitally, reducing costs and fostering the creation of a credit history.  
+
+### Specific Objectives
+
+- Provide a simple and accessible user experience.  
+- Ensure data security and privacy.  
+- Promote financial inclusion.  
+- Facilitate integration of digital payments with open standards.  
+- Boost the circular economy in the region.  
+
+---
+
+## Hackathon Open Payments – Interledger  
+**Team:** Code Spartans: ILU  
+**Project:** Ilu-app  
