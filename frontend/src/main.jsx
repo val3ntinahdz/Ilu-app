@@ -5,11 +5,13 @@ import Login from './App.jsx'
 import HomePage from './homePage.jsx'
 import SendScreen from './sendScreen.jsx'
 
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-   {/* <Login />*/}
+   {<Login />}
+
    {/*<HomePage />*/}
-   <SendScreen />
+   {<SendScreen />}
     
     
   </StrictMode>,
