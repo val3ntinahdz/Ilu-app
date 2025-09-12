@@ -9,7 +9,7 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    console.log('Login attempt:', { email, password, rememberMe });
     // Aquí iría la lógica de autenticación
   };
 
@@ -17,11 +17,7 @@ function App() {
     <div className="login-container">
       <div className="login-card">
         <div className="brand-logo">
-          <img 
-            src="/img/logo.jpeg" 
-            alt="ilu" 
-            className="logo-image"
-          />
+          <h1>ilu</h1>
           <p>Tu app financiera de confianza</p>
         </div>
 
