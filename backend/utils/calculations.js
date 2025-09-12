@@ -9,24 +9,24 @@
 ///////// savingsPercent: is the savings percentage /////////
 
 
-const calculateBreakdown = (monto) => {
-  const porcentajeAhorros = 4;
-  const porcentajeIlu = 2;
-  
-  const paraAhorros = (monto * porcentajeAhorros) / 100;
-  const paraIlu = (monto * porcentajeIlu) / 100;
-  const paraFamilia = monto - paraAhorros - paraIlu;
-  const comisionTotal = paraAhorros + paraIlu;
-  
+const calculateBreakdown = (amount) => {
+  const savingsPercent = 4;
+  const iluPercent = 2;
+
+  const toSavings = (amount * savingsPercent) / 100;
+  const toIlu = (amount * iluPercent) / 100;
+  const toFamily = amount - toSavings - toIlu;
+  const totalFee = toSavings + toIlu;
+
   return {
     success: true,
     breakdown: {
-      amount: monto,
-      savingsPercent: porcentajeAhorros,
-      toFamily: paraFamilia,
-      toSavings: paraAhorros,
-      toIlu: paraIlu,
-      totalFee: comisionTotal
+      amount: amount,
+      savingsPercent: savingsPercent,
+      toFamily: toFamily,
+      toSavings: toSavings,
+      toIlu: toIlu,
+      totalFee: totalFee
     }
   };
 };
