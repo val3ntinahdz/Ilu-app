@@ -79,7 +79,6 @@ Copiar código
 | Nahum Santa Ana Ceballos | Frontend developer, documentation                         |
 | Abraham Reyes Castillo   | Backend developer, AI simulation integration              |
 
-> *The table must be updated with the actual names and roles of the team.*  
 
 ---
 
