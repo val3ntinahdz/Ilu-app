@@ -1,0 +1,206 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
+
+.send-screen {
+  min-height: 100vh;
+  background: #efefe2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #272030;
+}
+
+.send-header {
+  background: #fff;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 2.2rem;
+  margin-bottom: 1.5rem;
+  border-radius: 1.2rem;
+  box-shadow: 0 6px 32px 0 rgba(78,39,128,0.07);
+  padding: 2.2rem 2rem 1.3rem 2rem;
+  text-align: left;
+  animation: fadeInCard 0.7s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.send-header h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #ab1d79;
+  margin-bottom: 0.35em;
+  letter-spacing: -.02em;
+}
+.send-header p {
+  font-size: 1.08rem;
+  color: #4e2780;
+  margin: 0;
+  opacity: .78;
+}
+
+.send-balance {
+  margin-top: 1.2rem;
+  background: #f6f2fa;
+  border: 1.5px solid #e3daef;
+  border-radius: 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.14rem;
+  padding: 0.8em 1.3em;
+  color: #4e2780;
+  box-shadow: 0 3px 12px 0 rgba(78,39,128,0.08);
+  min-height: 2.6em;
+}
+.send-balance-amount {
+  font-weight: 700;
+  font-size: 1.13em;
+  color: #ab1d79;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+}
+
+.send-main {
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.send-form {
+  background: #fff;
+  border-radius: 1.15rem;
+  box-shadow: 0 6px 32px 0 rgba(78,39,128,0.10);
+  padding: 2.1rem 1.5rem 2rem 1.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+  animation: fadeInCard 0.8s;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.form-group label {
+  color: #4e2780;
+  font-weight: 600;
+  font-size: 1.01rem;
+  margin-bottom: .07em;
+  letter-spacing: .01em;
+}
+.form-group label span {
+  color: #ab1d79;
+  font-weight: 700;
+  font-size: 1.15em;
+  margin-left: 0.15em;
+}
+.form-group input {
+  border-radius: .8rem;
+  border: 1.5px solid #d0c3f1;
+  font-size: 1.11rem;
+  padding: 0.72em 1em;
+  font-family: inherit;
+  color: #272030;
+  background: #f8f7fa;
+  transition: border .18s;
+  outline: none;
+}
+.form-group input:focus {
+  border: 1.5px solid #ab1d79;
+  background: #f6f2fa;
+}
+.form-group input:disabled {
+  background: #f2f1f7;
+  color: #b3a7c2;
+}
+
+.form-error {
+  color: #e85757;
+  font-size: 1.05rem;
+  background: #ffeaea;
+  border-radius: 0.55em;
+  padding: 0.5em 1em;
+  animation: fadeInCard 0.3s;
+  margin-bottom: -0.5em;
+}
+.form-success {
+  color: #059669;
+  background: #e7fff5;
+  border-radius: 0.55em;
+  font-size: 1.05rem;
+  padding: 0.5em 1em;
+  animation: fadeInCard 0.3s;
+  margin-bottom: -0.5em;
+}
+
+.send-btn {
+  margin-top: 0.7rem;
+  width: 100%;
+  background: linear-gradient(90deg,#ab1d79 0%,#4e2780 100%);
+  color: #fff;
+  border: none;
+  border-radius: 1.1rem;
+  font-size: 1.16rem;
+  font-weight: 600;
+  padding: 0.95em 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  box-shadow: 0 3px 12px 0 rgba(171,29,121,0.10);
+  transition: background 220ms cubic-bezier(.4,0,.2,1), transform 180ms cubic-bezier(.4,0,.2,1);
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  animation: fadeInCard 1s;
+}
+.send-btn:active {
+  animation: buttonPress 0.18s;
+}
+.send-btn:disabled {
+  opacity: 0.78;
+  filter: grayscale(0.18);
+  cursor: not-allowed;
+}
+.send-btn-icon {
+  font-size: 1.12em;
+  display: flex;
+  align-items: center;
+}
+
+.sending-loader {
+  border: 3px solid #f3e7fa;
+  border-top: 3px solid #ab1d79;
+  border-radius: 50%;
+  width: 1.3em;
+  height: 1.3em;
+  animation: spin 0.7s linear infinite;
+  margin-right: 0.5em;
+}
+
+@keyframes fadeInCard {
+  0% { opacity: 0; transform: translateY(60px) scale(0.97);}
+  100% { opacity: 1; transform: translateY(0) scale(1);}
+}
+@keyframes buttonPress {
+  0% { transform: scale(1);}
+  40% { transform: scale(0.94);}
+  100% { transform: scale(1);}
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 600px) {
+  .send-header, .send-main {
+    max-width: 99vw;
+  }
+  .send-form {
+    padding: 1.1rem 0.3rem 1.3rem 0.3rem;
+  }
+}
