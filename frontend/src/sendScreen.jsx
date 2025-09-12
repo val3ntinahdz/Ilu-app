@@ -138,7 +138,7 @@ const SendScreen = () => {
             name="destinatario"
             value={form.destinatario}
             onChange={handleChange}
-            placeholder="Nombre, correo o cuenta"
+            placeholder="Ejemplo: $ilp-interledger-test.dev/..."
             required
             disabled={isSending}
           />
