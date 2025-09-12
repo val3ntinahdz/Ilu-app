@@ -1,16 +1,29 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+
+const mockUsers = [
+  { email: 'miguel@email.com', password: '1234', name: 'Miguel' },
+  { email: 'dominga@email.com', password: 'abcd', name: 'Dominga García' }
+];
 
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password, rememberMe });
-    // Aquí iría la lógica de autenticación
+    const user = mockUsers.find(u => u.email === email && u.password === password);
+    if (user) {
+      setError('');
+      navigate('/home'); 
+    } else {
+      setError('Correo o contraseña incorrectos');
+    }
   };
 
   return (
@@ -65,6 +78,8 @@ function App() {
             Iniciar Sesión
           </button>
 
+          {error && <div className="alert alert-danger mt-2">{error}</div>}
+
           <div className="login-footer">
             <p>
               <a href="#forgot" className="forgot-link">¿Olvidaste tu contraseña?</a>
@@ -79,4 +94,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

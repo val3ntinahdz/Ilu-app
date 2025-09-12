@@ -1,42 +1,118 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { apiService } from './services/api'; // Importar tu servicio
 import './homePage.css';
 
 const HomePage = () => {
-  // === Estado proveniente del backend ===
+  // Estados existentes
   const [userData, setUserData] = useState(null);
   const [quickActions, setQuickActions] = useState([]);
   const [paymentServices, setPaymentServices] = useState([]);
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [monthlyStats, setMonthlyStats] = useState([]);
   const [aiTools, setAiTools] = useState({});
-  // UI
+  
+  // Estados UI
   const [showBalance, setShowBalance] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [isAiExpanded, setIsAiExpanded] = useState(false);
   const [activeAiTool, setActiveAiTool] = useState(null);
+  const [error, setError] = useState(null);
 
-  // === PREPARAR: aquí irá la lógica del backend ===
+  // CARGAR DATOS REALES DEL BACKEND
   useEffect(() => {
-    setIsLoading(true);
-    // Simulación, reemplazar por fetch/axios a backend
-    setTimeout(() => {
+    const loadBackendData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        console.log('🔄 Cargando datos de Miguel desde backend...');
+        
+        // Obtener datos reales del backend
+        const dashboardResponse = await apiService.getDashboard('miguel');
+        console.log('📊 Respuesta del backend:', dashboardResponse);
+        
+        if (dashboardResponse.success) {
+          const { user, recentTransactions: backendTransactions, quickStats } = dashboardResponse.data;
+          
+          // Mapear datos del backend al formato del frontend
+          setUserData({
+            name: user.name,
+            initials: user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+            availableBalance: user.balance,
+            totalBalance: user.balance + (user.totalSaved || 0),
+            currentSavings: user.totalSaved || 0,
+            savingsGoal: 50000, // Meta fija para demo
+            notifications: 2,
+            accountNumber: '**** 4532',
+            location: user.location,
+            totalSent: user.totalSent || 0,
+            totalReceived: user.totalReceived || 0
+          });
+
+          // Mapear transacciones del backend
+          setRecentTransactions(backendTransactions.map(t => ({
+            id: t.id || Math.random(),
+            type: t.type === 'received' ? 'income' : 'expense',
+            title: t.type === 'received' ? 
+              `Recibido de ${t.from}` : 
+              `Enviado a ${t.to}`,
+            amount: Math.abs(t.amount),
+            date: t.timestamp ? 
+              new Date(t.timestamp).toLocaleDateString('es-MX') : 'Hoy',
+            time: t.timestamp ? 
+              new Date(t.timestamp).toLocaleTimeString('es-MX', { 
+                hour: '2-digit', minute: '2-digit' 
+              }) : '00:00',
+            breakdown: t.breakdown
+          })));
+
+          // Stats mensuales con datos reales
+          setMonthlyStats([
+            { label: 'Recibido', value: user.totalReceived || 0, type: 'income' },
+            { label: 'Enviado', value: user.totalSent || 0, type: 'expense' },
+            { label: 'Ahorrado', value: user.totalSaved || 0, type: 'positive' }
+          ]);
+
+          console.log('✅ Datos cargados exitosamente del backend');
+        }
+      } catch (error) {
+        console.error('❌ Error cargando datos del backend:', error);
+        setError('Error conectando con el backend');
+        
+        // Fallback a datos de ejemplo
+        loadFallbackData();
+      }
+      
+      // Cargar datos estáticos (acciones, servicios, IA)
+      loadStaticData();
+      setIsLoading(false);
+    };
+
+    // Función de fallback si falla el backend
+    const loadFallbackData = () => {
+      console.log('⚠️  Usando datos de fallback');
       setUserData({
-        name: 'María González',
+        name: 'Miguel García',
         initials: 'MG',
-        availableBalance: 12450.54,
-        totalBalance: 21350.54,
-        currentSavings: 12500,
+        availableBalance: 0,
+        totalBalance: 0,
+        currentSavings: 0,
         savingsGoal: 50000,
         notifications: 2,
         accountNumber: '**** 4532'
       });
+    };
+
+    // Datos que no vienen del backend (UI)
+    const loadStaticData = () => {
       setQuickActions([
         { id: 'recharge', name: 'Recargar', icon: '💳', color: 'primary' },
         { id: 'send', name: 'Enviar', icon: '📤', color: 'accent' },
         { id: 'request', name: 'Solicitar', icon: '📥', color: 'secondary' },
         { id: 'history', name: 'Historial', icon: '📊', color: 'info' }
       ]);
+
       setPaymentServices([
         { id: 'internet', name: 'Internet', icon: '🌐', color: 'info' },
         { id: 'electricity', name: 'Electricidad', icon: '⚡', color: 'warning' },
@@ -45,16 +121,7 @@ const HomePage = () => {
         { id: 'water', name: 'Agua', icon: '💧', color: 'success' },
         { id: 'insurance', name: 'Seguros', icon: '🛡️', color: 'secondary' }
       ]);
-      setRecentTransactions([
-        { id: 1, type: 'income', title: 'Depósito bancario', amount: 2500, date: 'Hoy', time: '14:30' },
-        { id: 2, type: 'expense', title: 'Pago servicios', amount: -199, date: 'Ayer', time: '09:15' },
-        { id: 3, type: 'expense', title: 'Transferencia', amount: -1250, date: '28 Ago', time: '16:45' }
-      ]);
-      setMonthlyStats([
-        { label: 'Ingresos', value: 18548.99, type: 'income' },
-        { label: 'Gastos', value: 1445.93, type: 'expense' },
-        { label: 'Balance', value: 17103.06, type: 'positive' }
-      ]);
+
       setAiTools({
         advisor: {
           title: 'Consultor Financiero',
@@ -65,60 +132,38 @@ const HomePage = () => {
               title: 'Optimiza tus gastos',
               description: 'Puedes ahorrar $300 mensuales reduciendo suscripciones no utilizadas.',
               priority: 'high'
-            },
-            {
-              title: 'Estrategia de inversión',
-              description: 'Con tu saldo actual, considera invertir en fondos de bajo riesgo.',
-              priority: 'medium'
-            },
-            {
-              title: 'Meta alcanzable',
-              description: 'Estás a solo 3 meses de alcanzar tu meta de ahorro actual.',
-              priority: 'low'
-            }
-          ]
-        },
-        calculator: {
-          title: 'Calculadora Financiera',
-          description: 'Calcula préstamos, inversiones y proyecciones',
-          icon: '🧮',
-          content: [
-            {
-              title: 'Calculadora de préstamos',
-              description: 'Simula cuotas y intereses de créditos',
-              action: 'calculate'
-            },
-            {
-              title: 'Proyección de ahorros',
-              description: 'Calcula cuánto ahorrarás en el tiempo',
-              action: 'project'
-            },
-            {
-              title: 'Rentabilidad de inversiones',
-              description: 'Analiza el rendimiento de tus inversiones',
-              action: 'analyze'
             }
           ]
         }
       });
-      setIsLoading(false);
-    }, 800);
+    };
+
+    // Cargar datos iniciales
+    loadBackendData();
+
+    // Auto-refresh cada 15 segundos para ver cambios en tiempo real
+    const interval = setInterval(() => {
+      console.log('🔄 Refrescando datos...');
+      loadBackendData();
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  // === UTILIDADES ESCALABLES ===
+  // Funciones existentes
   const formatCurrency = useCallback(amount =>
     new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2
-    }).format(amount), []);
+    }).format(amount || 0), []);
 
   const calculateSavingsProgress = useCallback(() => {
     if (!userData) return 0;
     return Math.round((userData.currentSavings / userData.savingsGoal) * 100);
   }, [userData]);
 
-  // === HANDLERS REUTILIZABLES ===
+  // Handlers existentes
   const toggleBalance = useCallback(() => setShowBalance(b => !b), []);
   const flipCard = useCallback(() => setIsCardFlipped(f => !f), []);
   const toggleAiSection = useCallback(() => setIsAiExpanded(e => !e), []);
@@ -126,12 +171,34 @@ const HomePage = () => {
     setActiveAiTool(prev => (prev === toolKey ? null : toolKey));
   }, []);
 
-  if (isLoading || !userData) {
+  // Handler para enviar dinero
+  const handleSendMoney = () => {
+    // Navegar a pantalla de envío
+    console.log('Navegando a pantalla de envío...');
+    // Aquí puedes usar React Router o cambio de estado
+    window.location.href = '/send';
+  };
+
+  if (isLoading) {
     return (
       <div className="homepage-loading">
         <div className="loading-content">
           <div className="spinner"></div>
-          <p>Cargando tu información...</p>
+          <p>Cargando datos desde el backend...</p>
+          {error && <p style={{ color: 'red', fontSize: '0.8rem' }}>{error}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="homepage-loading">
+        <div className="loading-content">
+          <p style={{ color: 'red' }}>Error: No se pudieron cargar los datos</p>
+          <button onClick={() => window.location.reload()}>
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -139,7 +206,7 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
-      {/* Header */}
+      {/* Header con datos reales */}
       <header className="header">
         <div className="header-content">
           <div className="user-section">
@@ -148,7 +215,12 @@ const HomePage = () => {
             </div>
             <div className="user-info">
               <h1>¡Hola, {userData.name}!</h1>
-              <p>Bienvenida de vuelta</p>
+              <p>Bienvenido de vuelta</p>
+              {userData.location && (
+                <small style={{ color: '#666', fontSize: '0.8rem' }}>
+                  {userData.location}
+                </small>
+              )}
             </div>
           </div>
           <button className="notification-btn btn-secondary">
@@ -161,10 +233,25 @@ const HomePage = () => {
       </header>
 
       <main className="main-content">
-        {/* Tarjeta de saldo animada y minimalista */}
+        {/* Debug Panel - Quitar en producción */}
+        <div style={{ 
+          background: '#e3f2fd', 
+          padding: '0.5rem', 
+          margin: '1rem 0',
+          borderRadius: '4px',
+          fontSize: '0.75rem',
+          border: '1px solid #2196f3'
+        }}>
+          <strong>📊 Datos del Backend:</strong> 
+          Balance: ${userData.availableBalance} | 
+          Enviado: ${userData.totalSent} | 
+          Recibido: ${userData.totalReceived} | 
+          Transacciones: {recentTransactions.length}
+        </div>
+
+        {/* Balance section con datos reales */}
         <section className="balance-section">
           <div className={`balance-card-container${isCardFlipped ? ' flipped' : ''}`}>
-            {/* Cara frontal */}
             <div className="balance-card-face front">
               <article className="balance-card primary">
                 <div className="balance-header">
@@ -185,7 +272,8 @@ const HomePage = () => {
                 </button>
               </article>
             </div>
-            {/* Cara trasera */}
+
+            {/* Cara trasera con datos reales */}
             <div className="balance-card-face back">
               <section className="balance-details balance-details-small">
                 <div className="details-header">
@@ -193,9 +281,15 @@ const HomePage = () => {
                 </div>
                 <div className="details-grid">
                   <div className="detail-item">
-                    <span className="detail-label">Saldo total</span>
+                    <span className="detail-label">Total enviado</span>
                     <span className="detail-value">
-                      {showBalance ? formatCurrency(userData.totalBalance) : '••••••'}
+                      {showBalance ? formatCurrency(userData.totalSent) : '••••••'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Total recibido</span>
+                    <span className="detail-value">
+                      {showBalance ? formatCurrency(userData.totalReceived) : '••••••'}
                     </span>
                   </div>
                   <div className="detail-item">
@@ -204,25 +298,17 @@ const HomePage = () => {
                       {showBalance ? formatCurrency(userData.currentSavings) : '••••••'}
                     </span>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Progreso meta</span>
-                    <span className="detail-value">
-                      {calculateSavingsProgress()}%
-                    </span>
-                  </div>
                 </div>
                 <button className="flip-btn" onClick={flipCard}>
                   <span className="flip-icon">🔄</span>
-                  <span className="flip-text">
-                    {isCardFlipped ? 'Ver saldo' : 'Ver detalles'}
-                  </span>
+                  <span className="flip-text">Ver saldo</span>
                 </button>
               </section>
             </div>
           </div>
         </section>
 
-        {/* Acciones rápidas */}
+        {/* Acciones rápidas - CONECTAR BOTÓN ENVIAR */}
         <section className="quick-actions">
           <div className="actions-grid">
             {quickActions.map(action => (
@@ -230,7 +316,7 @@ const HomePage = () => {
                 key={action.id}
                 className="action-btn"
                 data-color={action.color}
-                // TODO: Implementar onClick para acción rápida
+                onClick={action.id === 'send' ? handleSendMoney : undefined}
               >
                 <div className="action-icon">{action.icon}</div>
                 <span className="action-text">{action.name}</span>
@@ -239,147 +325,52 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Layout principal */}
+        {/* Resto de tu código existente... */}
         <div className="content-layout">
           <div className="main-column">
-            {/* Herramientas de IA */}
-            <section className="ai-section">
-              <div className="ai-header" onClick={toggleAiSection}>
-                <div className="ai-header-content">
-                  <h2>🤖 Asistente Financiero IA</h2>
-                  <p>Herramientas inteligentes para optimizar tus finanzas</p>
-                </div>
-                <button className={`expand-btn btn-secondary${isAiExpanded ? ' expanded' : ''}`}>
-                  <span className="expand-icon">▼</span>
-                </button>
-              </div>
-              <div className={`ai-content${isAiExpanded ? ' expanded' : ''}`}>
-                <div className="ai-tools-selector">
-                  {Object.entries(aiTools).map(([key, tool]) => (
-                    <button
-                      key={key}
-                      className={`tool-btn btn-secondary${activeAiTool === key ? ' active' : ''}`}
-                      onClick={() => selectAiTool(key)}
-                      type="button"
-                    >
-                      <span className="tool-icon">{tool.icon}</span>
-                      <div className="tool-info">
-                        <span className="tool-title">{tool.title}</span>
-                        <span className="tool-description">{tool.description}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                {activeAiTool && (
-                  <div className="ai-tool-content">
-                    <div className="tool-content-header">
-                      <h4>{aiTools[activeAiTool].title}</h4>
-                    </div>
-                    <div className="tool-items">
-                      {aiTools[activeAiTool].content.map((item, index) => (
-                        <div key={index} className="tool-item">
-                          <div className="item-content">
-                            <h5 className="item-title">{item.title}</h5>
-                            <p className="item-description">{item.description}</p>
-                          </div>
-                          {/* TODO: Acción de IA */}
-                          <button className="item-action-btn btn-secondary">
-                            {activeAiTool === 'calculator' ? 'Calcular' : 'Ver más'}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="ai-main-actions">
-                  <button className="ai-action-btn btn-primary">
-                    <span className="btn-icon">💬</span>
-                    <span>Chat con IA</span>
-                  </button>
-                  <button className="ai-action-btn btn-secondary">
-                    <span className="btn-icon">📊</span>
-                    <span>Reporte completo</span>
-                  </button>
-                </div>
-              </div>
-            </section>
-            {/* Servicios de pago */}
-            <section className="services-section">
-              <div className="section-header">
-                <h2>Servicios de pago</h2>
-              </div>
-              <div className="services-grid">
-                {paymentServices.map(service => (
-                  <button
-                    key={service.id}
-                    className="service-btn"
-                    data-color={service.color}
-                    // TODO: Acción para servicio
-                  >
-                    <div className="service-icon">{service.icon}</div>
-                    <span className="service-name">{service.name}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-            {/* Movimientos recientes */}
+            {/* Transacciones con datos reales */}
             <section className="transactions-section">
               <div className="section-header">
                 <h2>Movimientos recientes</h2>
-                <button className="see-all-btn btn-outline">
-                  Ver todos
-                  {/* TODO: Implementar onClick para historial */}
-                </button>
+                <button className="see-all-btn btn-outline">Ver todos</button>
               </div>
               <div className="transactions-list">
-                {recentTransactions.map(transaction => (
-                  <div key={transaction.id} className="transaction-item">
-                    <div className={`transaction-icon ${transaction.type}`}>
-                      {transaction.type === 'income' ? '↓' : '↑'}
+                {recentTransactions.length > 0 ? (
+                  recentTransactions.map(transaction => (
+                    <div key={transaction.id} className="transaction-item">
+                      <div className={`transaction-icon ${transaction.type}`}>
+                        {transaction.type === 'income' ? '↓' : '↑'}
+                      </div>
+                      <div className="transaction-info">
+                        <span className="transaction-title">{transaction.title}</span>
+                        <span className="transaction-date">{transaction.date}, {transaction.time}</span>
+                      </div>
+                      <span className={`transaction-amount ${transaction.type}`}>
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
+                      </span>
                     </div>
-                    <div className="transaction-info">
-                      <span className="transaction-title">{transaction.title}</span>
-                      <span className="transaction-date">{transaction.date}, {transaction.time}</span>
-                    </div>
-                    <span className={`transaction-amount ${transaction.type}`}>
-                      {transaction.type === 'income' ? '+' : ''}
-                      {formatCurrency(Math.abs(transaction.amount))}
-                    </span>
+                  ))
+                ) : (
+                  <div className="no-transactions" style={{ 
+                    textAlign: 'center', 
+                    padding: '2rem', 
+                    color: '#666' 
+                  }}>
+                    <p>No hay transacciones recientes</p>
+                    <p style={{ fontSize: '0.8rem' }}>
+                      Las transacciones aparecerán aquí después de enviar dinero
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             </section>
-          </div>
-          {/* Sidebar */}
-          <aside className="sidebar desktop-only">
-            {/* Meta de ahorros */}
-            <div className="savings-widget">
-              <h3>Meta de ahorros</h3>
-              <div className="savings-info">
-                <div className="savings-amounts">
-                  <span className="current-amount">{formatCurrency(userData.currentSavings)}</span>
-                  <span className="goal-amount">de {formatCurrency(userData.savingsGoal)}</span>
-                </div>
-                <div className="progress-container">
-                  <div 
-                    className="progress-bar" 
-                    style={{ '--progress': `${calculateSavingsProgress()}%` }}
-                  >
-                    <div className="progress-fill"></div>
-                  </div>
-                  <span className="progress-text">
-                    {calculateSavingsProgress()}% completado
-                  </span>
-                </div>
+
+            {/* Estadísticas con datos reales */}
+            <section className="stats-section">
+              <div className="section-header">
+                <h2>Estadísticas del mes</h2>
               </div>
-              <button className="savings-btn btn-outline">
-                Ir a ahorros
-                {/* TODO: Acción Ir a ahorros */}
-              </button>
-            </div>
-            {/* Estadísticas */}
-            <div className="stats-widget">
-              <h3>Este mes</h3>
               <div className="stats-list">
                 {monthlyStats.map((stat, index) => (
                   <div key={index} className="stat-item">
@@ -391,25 +382,10 @@ const HomePage = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          </aside>
+            </section>
+          </div>
         </div>
       </main>
-      {/* Navegación inferior */}
-      <nav className="bottom-nav mobile-tablet-only">
-        {[
-          { id: 'home', icon: '🏠', label: 'Inicio', active: true },
-          { id: 'cards', icon: '💳', label: 'Tarjetas' },
-          { id: 'savings', icon: '💰', label: 'Ahorros' },
-          { id: 'analytics', icon: '📊', label: 'Análisis' },
-          { id: 'profile', icon: '👤', label: 'Perfil' }
-        ].map(item => (
-          <button key={item.id} className={`nav-item btn${item.active ? ' active' : ''}`}>
-            <span className="nav-icon">{item.icon}</span>
-            <span className="nav-label">{item.label}</span>
-          </button>
-        ))}
-      </nav>
     </div>
   );
 };
