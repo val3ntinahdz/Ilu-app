@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiService } from './services/api'; // Importar tu servicio
 import './homePage.css';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   // Estados existentes
@@ -172,11 +173,11 @@ const HomePage = () => {
   }, []);
 
   // Handler para enviar dinero
+  const navigate = useNavigate();
   const handleSendMoney = () => {
-    // Navegar a pantalla de envío
+    // Navegar a pantalla de envío usando react-router
     console.log('Navegando a pantalla de envío...');
-    // Aquí puedes usar React Router o cambio de estado
-    window.location.href = '/send';
+    navigate('/send');
   };
 
   if (isLoading) {
@@ -233,21 +234,6 @@ const HomePage = () => {
       </header>
 
       <main className="main-content">
-        {/* Debug Panel - Quitar en producción */}
-        <div style={{ 
-          background: '#e3f2fd', 
-          padding: '0.5rem', 
-          margin: '1rem 0',
-          borderRadius: '4px',
-          fontSize: '0.75rem',
-          border: '1px solid #2196f3'
-        }}>
-          <strong>📊 Datos del Backend:</strong> 
-          Balance: ${userData.availableBalance} | 
-          Enviado: ${userData.totalSent} | 
-          Recibido: ${userData.totalReceived} | 
-          Transacciones: {recentTransactions.length}
-        </div>
 
         {/* Balance section con datos reales */}
         <section className="balance-section">
@@ -381,6 +367,124 @@ const HomePage = () => {
                     </span>
                   </div>
                 ))}
+              </div>
+            </section>
+
+            {/* Calculadora de finanzas */}
+            <section className="finance-calculator">
+              <div className="section-header">
+                <h2>Calculadora de Finanzas</h2>
+              </div>
+              <div className="calculator-content">
+                <div className="progress-section">
+                  <div className="progress-header">
+                    <span className="progress-label">Meta de ahorro</span>
+                    <span className="progress-percentage">
+                      {calculateSavingsProgress()}%
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{ width: `${calculateSavingsProgress()}%` }}
+                    ></div>
+                  </div>
+                  <div className="progress-info">
+                    <span>
+                      {showBalance ? formatCurrency(userData.currentSavings) : '••••••'} 
+                      de {formatCurrency(userData.savingsGoal)}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="calculator-tips">
+                  <div className="tip-item">
+                    <span className="tip-icon">💡</span>
+                    <div className="tip-content">
+                      <span className="tip-title">Consejo Smart</span>
+                      <span className="tip-description">
+                        Ahorra {formatCurrency(Math.round((userData.savingsGoal - userData.currentSavings) / 12))} 
+                        mensuales para alcanzar tu meta en 1 año
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Columna lateral */}
+          <div className="side-column">
+            {/* Servicios de pago */}
+            <section className="payment-services">
+              <div className="section-header">
+                <h2>Servicios</h2>
+                <button className="see-all-btn btn-outline">Ver todos</button>
+              </div>
+              <div className="services-grid">
+                {paymentServices.map(service => (
+                  <button
+                    key={service.id}
+                    className="service-btn"
+                    data-color={service.color}
+                  >
+                    <div className="service-icon">{service.icon}</div>
+                    <span className="service-name">{service.name}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Sección de IA */}
+            <section className="ai-section">
+              <div className="section-header">
+                <h2>Asistente IA</h2>
+                <button 
+                  className="expand-btn"
+                  onClick={toggleAiSection}
+                >
+                  {isAiExpanded ? '−' : '+'}
+                </button>
+              </div>
+              
+              <div className={`ai-content ${isAiExpanded ? 'expanded' : ''}`}>
+                <div className="ai-tools">
+                  {Object.entries(aiTools).map(([toolKey, tool]) => (
+                    <div key={toolKey} className="ai-tool">
+                      <button
+                        className={`ai-tool-header ${activeAiTool === toolKey ? 'active' : ''}`}
+                        onClick={() => selectAiTool(toolKey)}
+                      >
+                        <div className="ai-tool-info">
+                          <span className="ai-tool-icon">{tool.icon}</span>
+                          <div className="ai-tool-text">
+                            <span className="ai-tool-title">{tool.title}</span>
+                            <span className="ai-tool-description">{tool.description}</span>
+                          </div>
+                        </div>
+                        <span className="ai-tool-arrow">
+                          {activeAiTool === toolKey ? '↑' : '↓'}
+                        </span>
+                      </button>
+                      
+                      {activeAiTool === toolKey && (
+                        <div className="ai-tool-content">
+                          {tool.content.map((item, index) => (
+                            <div key={index} className={`ai-advice ${item.priority}`}>
+                              <div className="advice-header">
+                                <span className="advice-title">{item.title}</span>
+                                <span className={`priority-badge ${item.priority}`}>
+                                  {item.priority === 'high' ? '🔴' : '🟡'}
+                                </span>
+                              </div>
+                              <p className="advice-description">{item.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
           </div>

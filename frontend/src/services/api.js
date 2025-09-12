@@ -9,6 +9,14 @@ export const apiService = {
     return response.json();
   },
 
+  // get user balance
+  getUserBalance: async (userId) => {
+    const response = await fetch(`${API_BASE}/users/${userId}/dashboard`);
+    if (!response.ok) throw new Error('Error obteniendo balance');
+    const data = await response.json();
+    return data.data.user.balance;
+  },
+
   // send money
   sendMoney: async (senderId, receiverId, amount) => {
     const response = await fetch(`${API_BASE}/transactions/send`, {

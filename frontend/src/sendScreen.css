@@ -26,6 +26,46 @@
   flex-direction: column;
   gap: 0.7rem;
 }
+
+.back-button {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #ab1d79 0%, #4e2780 100%);
+  color: white;
+  border: none;
+  border-radius: 0.8rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(171, 29, 121, 0.2);
+  margin-bottom: 0.5rem;
+}
+
+.back-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(171, 29, 121, 0.3);
+  background: linear-gradient(135deg, #c21d86 0%, #562b8c 100%);
+}
+
+.back-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(171, 29, 121, 0.25);
+}
+
+.back-arrow {
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.back-button:hover .back-arrow {
+  transform: translateX(-2px);
+}
 .send-header h1 {
   font-size: 1.65rem;
   font-weight: 700;
@@ -62,6 +102,21 @@
   letter-spacing: 0.01em;
   display: flex;
   align-items: center;
+  transition: all 0.3s ease;
+}
+
+.send-balance-amount.updated {
+  animation: balanceUpdate 0.6s ease-in-out;
+}
+
+@keyframes balanceUpdate {
+  0% { transform: scale(1); }
+  50% { 
+    transform: scale(1.05); 
+    color: #059669;
+    text-shadow: 0 0 8px rgba(5, 150, 105, 0.3);
+  }
+  100% { transform: scale(1); }
 }
 
 .send-main {
@@ -136,9 +191,34 @@
   background: #e7fff5;
   border-radius: 0.55em;
   font-size: 1.05rem;
-  padding: 0.5em 1em;
+  padding: 1em 1.2em;
   animation: fadeInCard 0.3s;
   margin-bottom: -0.5em;
+  text-align: center;
+  border: 1px solid #10b981;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.1);
+}
+
+.success-title {
+  font-weight: 600;
+  margin-bottom: 0.5em;
+  font-size: 1.05rem;
+}
+
+.success-amount {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #047857;
+  margin-bottom: 0.5em;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.5em;
+  border-radius: 0.4em;
+}
+
+.success-note {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  color: #047857;
 }
 
 .send-btn {
