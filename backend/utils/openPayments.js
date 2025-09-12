@@ -1,76 +1,26 @@
-/////////////FUNCIONAMIENTO DE OPENPAYMENTS.JS/////////////
-/////////DEBE TENER EL MISMO NOMBRE DE LA FUNCION EN EL FRONTEND/////////
-/////////SE PIDEN 3 PARAMETROS: senderWallet, receiverWallet, amount/////////
-/////////senderWallet: es la wallet del usuario que envia el pago/////////
-/////////receiverWallet: es la wallet del usuario que recibe el pago/////////
-/////////amount: es el monto del pago/////////
-/////////SE DEVUELVE UN OBJETO CON LOS SIGUIENTES DATOS: id, status, 
-///////// senderWallet, receiverWallet, amount, timestamp, steps/////////
-/////////id: es el id del pago/////////
-/////////status: es el estado del pago/////////
-/////////senderWallet: es la wallet del usuario que envia el pago/////////
-/////////receiverWallet: es la wallet del usuario que recibe el pago/////////
-/////////amount: es el monto del pago/////////
-/////////timestamp: es la fecha y hora del pago/////////
-/////////steps: es el paso A paso el pago/////////
-/////////status: es el estado del pago y pueden ser: COMPLETED, PENDING, FAILED/////////
-/////////////////////////////////////////////////////
-
-// import { v4 as uuidv4 } from 'uuid';
-
-// function simulateOpenPayments(senderWallet, receiverWallet, amount) {
-//   return new Promise((resolve) => {
-//     setTimeout(() => {
-//       const pagoId = `OP_${uuidv4().slice(0, 8).toUpperCase()}`;
-//       resolve({
-//         id: pagoId,
-//         status: 'COMPLETED',
-//         senderWallet,
-//         receiverWallet,
-//         amount,
-//         timestamp: new Date().toISOString(),
-//         steps: [
-//           { step: 'Wallet Discovery', status: 'COMPLETED' },
-//           { step: 'Create Incoming Payment', status: 'COMPLETED' },
-//           { step: 'Get Quote', status: 'COMPLETED' },
-//           { step: 'Grant Authorization', status: 'COMPLETED' },
-//           { step: 'Create Outgoing Payment', status: 'COMPLETED' }
-//         ]
-//       });
-//     }, 2000);
-//   });
-// }
-
-// export default { simulateOpenPayments };
-
-// // Prueba de la función
-// async function probarOpenPayments() {
-//   console.log('Iniciando prueba de OpenPayments...');
-//   try {
-//     const resultado = await simulateOpenPayments(
-//       'sender_wallet_123',
-//       'receiver_wallet_456',
-//       200
-//     );
-//     console.log('Resultado de OpenPayments:');
-//     console.log(JSON.stringify(resultado, null, 2));
-//   } catch (error) {
-//     console.error('Error en la prueba:', error);
-//   }
-// }
-
-// // Ejecutar prueba si se llama directamente
-// if (require.main === module) {
-//   probarOpenPayments();
-// }
+///////////// openpayments.js functionality /////////////
+///////// must have the same function name as in the frontend /////////
+///////// requires 3 parameters: senderWallet, receiverWallet, amount /////////
+///////// senderWallet: is the wallet of the user sending the payment /////////
+///////// receiverWallet: is the wallet of the user receiving the payment /////////
+///////// amount: is the payment amount /////////
+///////// returns an object with the following data: id, status, 
+///////// senderWallet, receiverWallet, amount, timestamp, steps /////////
+///////// id: is the payment id /////////
+///////// status: is the payment status /////////
+///////// senderWallet: is the wallet of the user sending the payment /////////
+///////// receiverWallet: is the wallet of the user receiving the payment /////////
+///////// amount: is the payment amount /////////
+///////// timestamp: is the payment date and time /////////
+///////// steps: is the step by step of the payment /////////
+///////// status: is the payment status and can be: completed, pending, failed /////////
 
 
-// utils/openPayments.js
 import { createAuthenticatedClient, isFinalizedGrant } from '@interledger/open-payments';
 import { readFileSync } from 'fs';
 import path from 'path';
 
-// Cache de clientes para evitar recrear
+// client cache to avoid recreating
 const clients = new Map();
 
 async function getClient(userId) {
@@ -85,7 +35,7 @@ async function getClient(userId) {
   console.log("Extracted user", user);
 
   try {
-    // Read the private key from the file
+  // read the private key from the file
     const privateKey = readFileSync(user.privateKeyPath, 'utf8');
     
     const client = await createAuthenticatedClient({
@@ -130,7 +80,7 @@ async function createIncomingPayment(receiverId, amount) {
       assetScale: receivingWallet.assetScale
     });
 
-    // Obtener grant para incoming payment
+    // get grant for incoming payment
     const incomingPaymentGrant = await client.grant.request(
       { url: receivingWallet.authServer },
       {
@@ -145,10 +95,10 @@ async function createIncomingPayment(receiverId, amount) {
 
     console.log('Incoming payment grant obtenido');
 
-    // Calcular el valor correcto
+    // calculate the correct value
     const scaledValue = Math.round(amount * Math.pow(10, receivingWallet.assetScale));
     
-    // Crear incoming payment
+    // create incoming payment
     const incomingPayment = await client.incomingPayment.create(
       {
         url: receivingWallet.resourceServer,
@@ -185,7 +135,7 @@ async function createQuote(senderId, receiver, amount) {
     });
     console.log('Receiver:', receiver);
 
-    // Grant para quote
+  // grant for quote
     const quoteGrant = await client.grant.request(
       { 
         url: sendingWallet.authServer,
@@ -202,7 +152,7 @@ async function createQuote(senderId, receiver, amount) {
 
     console.log('Quote grant obtenido', quoteGrant);
 
-    // Crear quote
+  // create quote
     const quote = await client.quote.create(
       {
         url: sendingWallet.resourceServer,
@@ -278,7 +228,7 @@ async function completeOutgoingPayment(senderId, grantContinueUrl, grantAccessTo
     
     console.log('Completing outgoing payment');
     
-    // Continuar grant
+  // continue grant
     const finalizedGrant = await client.grant.continue({
       url: grantContinueUrl,
       accessToken: grantAccessToken
@@ -290,7 +240,7 @@ async function completeOutgoingPayment(senderId, grantContinueUrl, grantAccessTo
 
     console.log('Grant finalizado correctamente');
 
-    // Crear outgoing payment
+  // create outgoing payment
     const outgoingPayment = await client.outgoingPayment.create(
       {
         url: sendingWallet.resourceServer,
@@ -314,18 +264,18 @@ async function sendPayment(senderId, receiverId, amount) {
   try {
     console.log(`Iniciando pago: ${senderId} -> ${receiverId}, ${amount}`);
     
-    // Paso 1: Crear incoming payment
-    console.log('Paso 1: Creando incoming payment...');
+  // step 1: create incoming payment
+  console.log('step 1: creating incoming payment...');
     const incomingPayment = await createIncomingPayment(receiverId, amount);
     console.log('✓ Incoming payment creado');
     
-    // Paso 2: Crear quote
-    console.log('Paso 2: Creando quote...');
+  // step 2: create quote
+  console.log('step 2: creating quote...');
     const quote = await createQuote(senderId, incomingPayment.id, amount);
     console.log('✓ Quote creado');
     
-    // Paso 3: Solicitar grant para outgoing payment
-    console.log('Paso 3: Solicitando grant...');
+  // step 3: request grant for outgoing payment
+  console.log('step 3: requesting grant...');
     const outgoingPaymentGrant = await requestOutgoingPaymentGrant(senderId, quote);
     console.log('✓ Grant solicitado');
     
@@ -337,7 +287,7 @@ async function sendPayment(senderId, receiverId, amount) {
       grantAccessToken: outgoingPaymentGrant.continue.access_token.value,
       quote,
       incomingPayment,
-      message: 'Usuario debe autorizar el pago en la URL proporcionada'
+  message: 'user must authorize the payment at the provided url'
     };
     
   } catch (error) {
@@ -384,64 +334,6 @@ async function completePayment(senderId, grantContinueUrl, grantAccessToken, quo
   }
 }
 
-// Función de debugging para verificar configuración
-async function debugWalletConfiguration(userId) {
-  try {
-    console.log(`\n=== DEBUG: Verificando configuración para ${userId} ===`);
-    
-    const users = JSON.parse(readFileSync('./data/users.json'));
-    const user = users[userId];
-    
-    console.log('1. Usuario encontrado:', {
-      name: user.name,
-      walletAddress: user.walletAddress,
-      keyId: user.keyId,
-      privateKeyPath: user.privateKeyPath
-    });
-    
-    // Verificar que el archivo de clave privada existe
-    try {
-      const privateKey = readFileSync(user.privateKeyPath, 'utf8');
-      console.log('2. ✓ Archivo de clave privada encontrado');
-      console.log('   Longitud de clave:', privateKey.length);
-      console.log('   Comienza con:', privateKey.substring(0, 50) + '...');
-    } catch (keyError) {
-      console.log('2. ✗ Error leyendo clave privada:', keyError.message);
-      return false;
-    }
-    
-    // Probar crear cliente
-    try {
-      const client = await getClient(userId);
-      console.log('3. ✓ Cliente creado exitosamente');
-    } catch (clientError) {
-      console.log('3. ✗ Error creando cliente:', clientError.message);
-      return false;
-    }
-    
-    // Probar obtener wallet info
-    try {
-      const walletInfo = await getWalletInfo(userId);
-      console.log('4. ✓ Wallet info obtenida exitosamente');
-      console.log('   ID:', walletInfo.id);
-      console.log('   Asset Code:', walletInfo.assetCode);
-      console.log('   Asset Scale:', walletInfo.assetScale);
-      console.log('   Auth Server:', walletInfo.authServer);
-      console.log('   Resource Server:', walletInfo.resourceServer);
-    } catch (walletError) {
-      console.log('4. ✗ Error obteniendo wallet info:', walletError.message);
-      return false;
-    }
-    
-    console.log('=== Configuración OK ===\n');
-    return true;
-    
-  } catch (error) {
-    console.log('Error en debug:', error.message);
-    return false;
-  }
-}
-
 export {
   getClient,
   getWalletInfo,
@@ -451,38 +343,4 @@ export {
   completeOutgoingPayment,
   sendPayment,
   completePayment,
-  debugWalletConfiguration
 };
-// async function createIncomingPayment(receiverId, amount) {
-//   const client = await getClient(receiverId);
-//   const users = JSON.parse(readFileSync('./data/users.json'));
-  
-//   // lógica específica...
-//   return incomingPayment;
-// }
-
-// async function createQuote(senderId, receiver, amount) {
-//   const client = await getClient(senderId);
-//   // lógica específica...
-//   return quote;
-// }
-
-// async function sendPayment(senderId, receiverId, amount) {
-//   try {
-//     const incomingPayment = await createIncomingPayment(receiverId, amount);
-//     const quote = await createQuote(senderId, incomingPayment.id, amount);
-//     // continúa el flujo...
-    
-//     return { success: true, quote, incomingPayment };
-//   } catch (error) {
-//     return { success: false, error: error.message };
-//   }
-// }
-
-// export default {
-//   getClient,
-//   createIncomingPayment,
-//   createQuote, 
-//   sendPayment
-// };
-

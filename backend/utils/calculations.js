@@ -1,12 +1,12 @@
-/////////////FUNCIONAMIENTO DE CALCULATIONS.JS/////////////
-/////////DEBE TENER EL MISMO NOMBRE DE LA FUNCION EN EL FRONTEND/////////
-/////////SE PIDEN 1 PARAMETRO: monto/////////
-/////////monto: es el monto del pago/////////
-/////////SE DEVUELVE UN OBJETO CON LOS SIGUIENTES DATOS: success, breakdown/////////
-/////////success: es true si la funcion se ejecuto correctamente/////////
-/////////breakdown: es un objeto con los siguientes datos: amount, savingsPercent, toFamily, toSavings, toIlu, totalFee/////////
-/////////amount: es el monto del pago/////////
-/////////savingsPercent: es el porcentaje de ahorros/////////
+///////////// calculations.js functionality /////////////
+///////// must have the same function name as in the frontend /////////
+///////// requires 1 parameter: amount /////////
+///////// amount: is the payment amount /////////
+///////// returns an object with the following data: success, breakdown /////////
+///////// success: is true if the function executed correctly /////////
+///////// breakdown: is an object with the following data: amount, savingsPercent, toFamily, toSavings, toIlu, totalFee /////////
+///////// amount: is the payment amount /////////
+///////// savingsPercent: is the savings percentage /////////
 
 
 const calculateBreakdown = (monto) => {
@@ -30,11 +30,13 @@ const calculateBreakdown = (monto) => {
     }
   };
 };
-//////////////cambiar esto despues/borrarlo/////////
-// Prueba con monto de 200
-const resultadoPrueba = calculateBreakdown(200);
-console.log('Resultado de la prueba con monto 200:');
-console.log(JSON.stringify(resultadoPrueba, null, 2));
 
-// Exportar la función para uso en otros archivos
+
+// remove or change this later
+// test with amount 200
+const testResult = calculateBreakdown(200);
+console.log('test result with amount 200:');
+console.log(JSON.stringify(testResult, null, 2));
+
+// export the function for use in other files
 export default { calculateBreakdown };

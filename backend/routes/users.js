@@ -1,17 +1,9 @@
 import { Router } from 'express';
+import { getDashboard } from '../controllers/userController.js';
+
 const router = Router();
 
 // GET /api/users/:id/dashboard
-router.get('/:id/dashboard', (req, res) => {
-  // Dashboard con métricas del usuario
-  // - Total saved, received, sent
-  // - Recent transactions
-  // - Savings growth
-});
-
-// GET /api/users/:id/profile
-router.get('/:id/profile', (req, res) => {
-  // Información básica del usuario
-});
+router.get('/:id/dashboard', getDashboard);
 
 export default router;
