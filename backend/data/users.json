@@ -6,8 +6,8 @@
     "walletAddress": "https://ilp.interledger-test.dev/test1part2",
     "keyId": "5e05a052-ea20-483b-b084-f1072d1ecd61",
     "privateKeyPath": "./keys/miguel-private.key",
-    "currentBalance": 450.5400000000009,
-    "totalSent": 14800,
+    "currentBalance": 100.54000000000087,
+    "totalSent": 15150,
     "avgSavingsRate": 4.2,
     "transactions": [
       {
@@ -58,6 +58,41 @@
         "timestamp": "2025-09-12T18:21:07.234Z",
         "status": "completed",
         "method": "OpenPayments"
+      },
+      {
+        "id": "SIM_1758130661809",
+        "type": "sent",
+        "amount": -300,
+        "to": "Dominga García",
+        "breakdown": {
+          "amount": 300,
+          "savingsPercent": 4,
+          "toFamily": 282,
+          "toSavings": 12,
+          "toIlu": 6,
+          "totalFee": 18
+        },
+        "timestamp": "2025-09-17T17:37:41.811Z",
+        "status": "completed",
+        "method": "OpenPayments"
+      },
+      {
+        "id": "SIM_1758132075857",
+        "senderWalletAddress": "https://ilp.interledger-test.dev/test1part2",
+        "type": "sent",
+        "amount": -50,
+        "to": "Dominga García",
+        "breakdown": {
+          "amount": 50,
+          "savingsPercent": 4,
+          "toFamily": 47,
+          "toSavings": 2,
+          "toIlu": 1,
+          "totalFee": 3
+        },
+        "timestamp": "2025-09-17T18:01:15.858Z",
+        "status": "completed",
+        "method": "OpenPayments"
       }
     ]
   },
@@ -68,9 +103,9 @@
     "walletAddress": "https://ilp.interledger-test.dev/dominga-wallet",
     "keyId": "39d7315c-2e1c-4b8d-9470-ef719a48e0cf",
     "privateKeyPath": "./keys/dominga-private.key",
-    "totalReceived": 13696,
-    "totalSaved": 880,
-    "currentBalance": 11826,
+    "totalReceived": 14025,
+    "totalSaved": 894,
+    "currentBalance": 12155,
     "transactions": [
       {
         "id": "OP_1757654125318",
@@ -94,6 +129,25 @@
         "amount": 11280,
         "from": "Miguel",
         "timestamp": "2025-09-12T18:21:07.234Z",
+        "status": "completed",
+        "method": "OpenPayments"
+      },
+      {
+        "id": "SIM_1758130661809",
+        "type": "received",
+        "amount": 282,
+        "from": "Miguel",
+        "timestamp": "2025-09-17T17:37:41.811Z",
+        "status": "completed",
+        "method": "OpenPayments"
+      },
+      {
+        "id": "SIM_1758132075857",
+        "receiverWalletAddress": "https://ilp.interledger-test.dev/dominga-wallet",
+        "type": "received",
+        "amount": 47,
+        "from": "Miguel",
+        "timestamp": "2025-09-17T18:01:15.858Z",
         "status": "completed",
         "method": "OpenPayments"
       }

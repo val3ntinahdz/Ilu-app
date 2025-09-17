@@ -5,6 +5,9 @@ export const apiService = {
   // user dashboard
   getDashboard: async (userId) => {
     const response = await fetch(`${API_BASE}/users/${userId}/dashboard`);
+    console.log("THE RESPONSE:", response)
+
+
     if (!response.ok) throw new Error('Error obteniendo dashboard');
     return response.json();
   },
@@ -18,7 +21,7 @@ export const apiService = {
   },
 
   // send money
-  sendMoney: async (senderId, receiverId, amount) => {
+  sendMoney: async (senderId, receiverId, amount, clientWalletAddress) => {
     const response = await fetch(`${API_BASE}/transactions/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

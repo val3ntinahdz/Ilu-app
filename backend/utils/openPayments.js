@@ -68,6 +68,9 @@ async function getWalletInfo(userId) {
   }
 }
 
+
+// this is a function for incoming payments
+// we need outgoing payments 
 async function createIncomingPayment(receiverId, amount) {
   try {
     const client = await getClient(receiverId);
@@ -131,9 +134,15 @@ async function createQuote(senderId, receiver, amount) {
     console.log('Sending wallet info:', {
       id: sendingWallet.id,
       authServer: sendingWallet.authServer,
-      resourceServer: sendingWallet.resourceServer
+      resourceServer: sendingWallet.resourceServer,
+      debitAmount: {
+        value: amount, // this is the amount the user will send to the receiver 
+        assetCode: walletAddress.assetCode,
+        assetScale: walletAddress.assetScale,
+    },
+
     });
-    console.log('Receiver:', receiver);
+    console.log('Receiver wallet address:', receiver.walletAddress);
 
   // grant for quote
     const quoteGrant = await client.grant.request(
@@ -260,7 +269,7 @@ async function completeOutgoingPayment(senderId, grantContinueUrl, grantAccessTo
   }
 }
 
-async function sendPayment(senderId, receiverId, amount) {
+async function sendPayment(senderId, receiverId, amount, receiverWalletAddress) {
   try {
     console.log(`Iniciando pago: ${senderId} -> ${receiverId}, ${amount}`);
     

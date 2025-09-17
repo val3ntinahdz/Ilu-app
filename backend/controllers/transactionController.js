@@ -25,13 +25,13 @@ const writeDatabase = (data) => {
 
 export const sendPayment = async (req, res) => {
   try {
-    const { senderId, receiverId, amount } = req.body;
+    const { senderId, receiverId, amount, receiverWalletAddress } = req.body;
     
     // validate data entry
-    if (!senderId || !receiverId || !amount || amount <= 0) {
+    if (!senderId || !receiverId || !amount || amount <= 0 || !receiverWalletAddress) {
       return res.status(400).json({
         success: false,
-        error: "senderId, receiverId y amount son requeridos. Amount debe ser mayor a 0."
+        error: "senderId, receiverId, amount y receiver wallet address son requeridos. Amount debe ser mayor a 0."
       });
     }
 
@@ -76,6 +76,7 @@ export const sendPayment = async (req, res) => {
 
     let paymentResult;
     
+    
     try {
       console.log('Iniciando simulación de pago...');
       // Por ahora usamos simulación para evitar errores de wallet
@@ -117,6 +118,7 @@ export const sendPayment = async (req, res) => {
     if (!database[senderId].transactions) database[senderId].transactions = [];
     database[senderId].transactions.push({
       id: transactionId,
+      senderWalletAddress: database[senderId].walletAddress,
       type: 'sent',
       amount: -amount,
       to: database[receiverId].name,
@@ -130,6 +132,7 @@ export const sendPayment = async (req, res) => {
     if (!database[receiverId].transactions) database[receiverId].transactions = [];
     database[receiverId].transactions.push({
       id: transactionId,
+      receiverWalletAddress: database[receiverId].walletAddress,
       type: 'received', 
       amount: breakdown.breakdown.toFamily,
       from: database[senderId].name,

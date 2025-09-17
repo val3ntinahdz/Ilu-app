@@ -71,7 +71,7 @@ const SendScreen = () => {
   const [lastSentAmount, setLastSentAmount] = useState(null);
   const [balanceUpdated, setBalanceUpdated] = useState(false);
 
-  // --- CONEXIÓN CON EL BACKEND ---
+  // backend connection
   useEffect(() => {
     const fetchUserBalance = async () => {
       setIsBalanceLoading(true);
@@ -82,8 +82,6 @@ const SendScreen = () => {
       } catch (error) {
         console.error('Error fetching balance:', error);
         setErrorMsg('Error al cargar el saldo. Verifica que el backend esté funcionando en puerto 3000.');
-        // Fallback al valor por defecto si hay error
-        setAvailableBalance(12450.54);
       } finally {
         setIsBalanceLoading(false);
       }
@@ -92,7 +90,7 @@ const SendScreen = () => {
     fetchUserBalance();
   }, []);
 
-  // Validación de formulario centralizada (fácil de expandir)
+  // form validation
   function validateForm(fields, availableBalance) {
     if (!fields.destinatario || !fields.cantidad) {
       return 'Todos los campos obligatorios deben ser llenados.';
@@ -106,18 +104,18 @@ const SendScreen = () => {
     return '';
   }
 
-  // Manejar cambios en los campos
+  // handle changes in form fields
   const handleChange = useCallback(e => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
     setErrorMsg('');
   }, []);
 
-  // Manejar navegación de regreso
+  // handle navigation
   const handleGoBack = () => {
     navigate('/home');
   };
 
-  // Envío real con backend
+  // real payment with backend
   const handleSubmit = async e => {
     e.preventDefault();
     setErrorMsg('');
@@ -131,12 +129,15 @@ const SendScreen = () => {
     }
 
     const amountToSend = Number(form.cantidad);
+    const receiverWalletAddress = form.destinatario;
     setIsSending(true);
 
     try {
       // Llamada real al backend para realizar la transferencia
-      const result = await apiService.sendMoney('miguel', 'dominga', amountToSend);
+      // get the receiver wallet address
+      const result = await apiService.sendMoney('miguel', 'dominga', amountToSend, receiverWalletAddress);
       
+      // if (receiverWalletAddress != )
       if (result.success) {
         setIsSending(false);
         setSuccess(true);
@@ -245,7 +246,6 @@ const SendScreen = () => {
             ) : (
               <>
                 <span>Transferir</span>
-                <span className="send-btn-icon">🚀</span>
               </>
             )}
           </button>

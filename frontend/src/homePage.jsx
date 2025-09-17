@@ -27,15 +27,14 @@ const HomePage = () => {
       setError(null);
       
       try {
-        console.log('🔄 Cargando datos de Miguel desde backend...');
+        console.log('Cargando datos de Miguel desde backend...');
         
         // Obtener datos reales del backend
         const dashboardResponse = await apiService.getDashboard('miguel');
-        console.log('📊 Respuesta del backend:', dashboardResponse);
+        console.log('Respuesta del backend:', dashboardResponse);
         
         if (dashboardResponse.success) {
           const { user, recentTransactions: backendTransactions, quickStats } = dashboardResponse.data;
-          
           // Mapear datos del backend al formato del frontend
           setUserData({
             name: user.name,
@@ -51,8 +50,8 @@ const HomePage = () => {
             totalReceived: user.totalReceived || 0
           });
 
-          // Mapear transacciones del backend
-          setRecentTransactions(backendTransactions.map(t => ({
+          // Mapear transacciones del backend (proteger si no es array)
+          setRecentTransactions(Array.isArray(backendTransactions) ? backendTransactions.map(t => ({
             id: t.id || Math.random(),
             type: t.type === 'received' ? 'income' : 'expense',
             title: t.type === 'received' ? 
@@ -66,7 +65,7 @@ const HomePage = () => {
                 hour: '2-digit', minute: '2-digit' 
               }) : '00:00',
             breakdown: t.breakdown
-          })));
+          })) : []);
 
           // Stats mensuales con datos reales
           setMonthlyStats([
@@ -92,7 +91,7 @@ const HomePage = () => {
 
     // Función de fallback si falla el backend
     const loadFallbackData = () => {
-      console.log('⚠️  Usando datos de fallback');
+      console.log('Usando datos de fallback');
       setUserData({
         name: 'Miguel García',
         initials: 'MG',
@@ -101,7 +100,10 @@ const HomePage = () => {
         currentSavings: 0,
         savingsGoal: 50000,
         notifications: 2,
-        accountNumber: '**** 4532'
+        accountNumber: '**** 4532',
+        location: '',
+        totalSent: 0,
+        totalReceived: 0
       });
     };
 
@@ -207,6 +209,11 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
+      {error && (
+        <div className="error-message" style={{color: 'red', margin: '1rem 0', textAlign: 'center'}}>
+          {error}
+        </div>
+      )}
       {/* Header con datos reales */}
       <header className="header">
         <div className="header-content">

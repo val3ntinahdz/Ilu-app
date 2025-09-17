@@ -7,11 +7,17 @@ const __dirname = path.dirname(__filename);
 
 const readDatabase = () => {
   try {
+
+    // read users database
     const dataPath = path.join(__dirname, '../data/users.json');
     const data = readFileSync(dataPath, 'utf8');
+
+    // parse data in JSON format!
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading database:', error);
+
+    // in case of errors, return an empty object
     return {};
   }
 };
