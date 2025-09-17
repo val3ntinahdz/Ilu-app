@@ -5,7 +5,7 @@ async function testIndividualFunctions() {
   // test connection
   console.log('1. testing connection...');
     const client = await getClient('miguel');
-  console.log('client connected');
+  console.log('client connected', client);
     
   // test wallet info
   console.log('2. getting wallet info...');
