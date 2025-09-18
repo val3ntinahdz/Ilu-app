@@ -1,6 +1,6 @@
 {
   "miguel": {
-    "id": 1,
+    "id": "1",
     "name": "Miguel",
     "location": "Los Angeles, CA",
     "walletAddress": "https://ilp.interledger-test.dev/test1part2",
@@ -97,7 +97,7 @@
     ]
   },
   "dominga": {
-    "id": 2,
+    "id": "2",
     "name": "Dominga García",
     "location": "Santa María Tlahuitoltepec, Oaxaca",
     "walletAddress": "https://ilp.interledger-test.dev/dominga-wallet",

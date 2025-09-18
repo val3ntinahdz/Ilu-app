@@ -1,21 +1,32 @@
-import { getClient, getWalletInfo, createIncomingPayment, sendPayment } from './openPayments.js';
+import { getClient, getWalletInfo, createQuote, createOutgoingPayment, sendPayment } from './openPayments.js';
 
 async function testIndividualFunctions() {
   try {
   // test connection
   console.log('1. testing connection...');
-    const client = await getClient('miguel');
-  console.log('client connected', client);
+  const miguelClient = await getClient('miguel');
+  const domingaClient = await getClient('dominga')
+  console.log('miguel client connected', miguelClient);
+  console.log('dominga client connected', domingaClient);
     
   // test wallet info
   console.log('2. getting wallet info...');
-    const walletInfo = await getWalletInfo('miguel');
-  console.log('wallet info:', walletInfo.id);
-    
-  // test incoming payment
-  console.log('3. creating incoming payment...');
-    const incomingPayment = await createIncomingPayment('dominga', 10);
-  console.log('incoming payment:', incomingPayment.id);
+  const miguelWalletInfo = await getWalletInfo(miguelClient);
+  console.log('Miguel wallet info:', miguelWalletInfo);
+
+  const domingaWalletInfo = await getWalletInfo(domingaClient);
+  console.log('Dominga wallet info:', domingaWalletInfo);
+
+  // create quote
+  console.log('3. creating quote for outgoing payment...');
+  const quote = await createQuote(client, domingaWalletInfo, 5);
+  console.log('created quote: ', quote);
+
+  // create the outgoing payment
+  console.log('4. creating outgoing payment...');
+  const outgoingPayment = await createOutgoingPayment(client, quote.id);
+  console.log('created outgoing payment: ', outgoingPayment);
+
     
   } catch (error) {
   console.error('error:', error.message);
