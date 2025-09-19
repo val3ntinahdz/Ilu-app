@@ -10,10 +10,45 @@ app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000'] 
 }));
 
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // Import all the routes from routes/index.js
 app.use('/api', routes);
+// Añadir ANTES de app.listen(PORT, ...)
+app.get('/callback', (req, res) => {
+  const { interact_ref } = req.query;
+  
+  console.log('Payment authorization callback received');
+  console.log('Interact ref:', interact_ref);
+  
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Payment Authorized</title>
+      <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .success { color: green; }
+      </style>
+    </head>
+    <body>
+      <h1 class="success">✅ Payment Authorized!</h1>
+      <p>Miguel has successfully authorized the remittance.</p>
+      <p><strong>Reference:</strong> ${interact_ref}</p>
+      <p>You can close this window.</p>
+      <script>
+        // Optional: Auto-close after 3 seconds
+        setTimeout(() => window.close(), 3000);
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+// También añadir ruta para root por si acaso
+app.get('/', (req, res) => {
+  res.send('ILÚ Backend is running');
+});
 
 app.listen(PORT, () => {
   console.log(`ILÚ Backend running on port ${PORT}`);

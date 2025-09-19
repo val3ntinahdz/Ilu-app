@@ -1,24 +1,22 @@
-// 1. A function that first creates a grant for the outgoing payment (an authorization from the sender)
-// 2. create a function for outgoing payments only: sender -> authorization (grant) -> receiver
-    // -> the function should receive an argument with the receiver wallet address to continue with transaction 
-    // add validations to make sure the wallet address exists and the amoun is in the right format 
-// 3. Make auth url for the receiver (grant)
+// // 1. A function that first creates a grant for the outgoing payment (an authorization from the sender)
+// // 2. create a function for outgoing payments only: sender -> authorization (grant) -> receiver
+//     // -> the function should receive an argument with the receiver wallet address to continue with transaction 
+//     // add validations to make sure the wallet address exists and the amoun is in the right format 
+// // 3. Make auth url for the receiver (grant)
 
-// async function createNewPayment(receiverId, amount, receiverWalletAddress) {
-//   // get the receiver id 
-//   // receive the amount 
-//   // make it match with the receiver wallet address (payment pointer)
-// }
+// // async function createNewPayment(receiverId, amount, receiverWalletAddress) {
+// //   // get the receiver id 
+// //   // receive the amount 
+// //   // make it match with the receiver wallet address (payment pointer)
+// // }
 
-// THIS IS A SECOND VERSION OF THE FIRST OPEN PAYMENTS IMPLEMENTATION FROM THE openPayments.js file! 
+// // THIS IS A SECOND VERSION OF THE FIRST OPEN PAYMENTS IMPLEMENTATION FROM THE openPayments.js file! 
 
-
-// 1. First, get the client and their wallet address info
 import { createAuthenticatedClient, isFinalizedGrant } from '@interledger/open-payments';
 import { readFileSync } from 'fs';
 import path from 'path';
 
-// client cache to avoid recreating
+// Client cache to avoid recreating
 const clients = new Map();
 
 async function getClient(userId) {
@@ -26,34 +24,36 @@ async function getClient(userId) {
     return clients.get(userId);
   }
 
-  
-  const users = JSON.parse(readFileSync('./data/users.json'));
-  console.log("Users in json: ", users);
-
-  const user = users[userId];
-  console.log("Extracted user", user);
-
   try {
-  // read the private key from the file
+    const users = JSON.parse(readFileSync('./data/users.json'));
+    console.log("Users in json: ", users);
+  
+    const user = users[userId];
+    if (!user) {
+      throw new Error(`User ${userId} not found in users.json`);
+    }
+
+    console.log("Extracted user", user);
+
+    // Read the private key from the file
     const privateKey = readFileSync(user.privateKeyPath, 'utf8');
-    console.log("What is the private key?", privateKey);
     
-    // create an authenticated client first
+    // Create an authenticated client
     const client = await createAuthenticatedClient({
       walletAddressUrl: user.walletAddress,
-      privateKey: privateKey, // get the content, not the route
+      privateKey: privateKey,
       keyId: user.keyId
     });
 
     clients.set(userId, client);
     return client;
+
   } catch (error) {
-    console.error(`Error creando cliente para ${userId}:`, error);
+    console.error(`Error creating client for ${userId}:`, error);
     throw error;
   }
 }
 
-// 2. Get the client´s wallet info
 async function getWalletInfo(userId) {
   const client = await getClient(userId);
   const users = JSON.parse(readFileSync(path.join('./data/users.json')));
@@ -62,28 +62,87 @@ async function getWalletInfo(userId) {
     const walletInfo = await client.walletAddress.get({
       url: users[userId].walletAddress
     });
+
     console.log(`Wallet info for ${userId}:`, walletInfo);
     return walletInfo;
+
   } catch (error) {
-    console.error(`Error obteniendo wallet info para ${userId}:`, error);
+    console.error(`Error getting wallet info for ${userId}:`, error);
     throw error;
   }
 }
 
-// 3. After we got the client wallet info, we create the quote for an outgoing payment
-async function createQuote (senderId, receiverPaymentPointer, amount) {
-
+async function createIncomingPayment(receiverId, amount, description) {
   try {
-    const client = getClient(senderId);
-    const sendingWallet = getWalletInfo(senderId);
+    const receiverClient = await getClient(receiverId);
+    const receiverWallet = await getWalletInfo(receiverId);
 
-    console.log(`Creating quote for sender ${senderId} to receiver ${receiverPaymentPointer} for the amount of ${amount}`);
+    console.log(`${receiverId} creating incoming payment for ${amount} ${receiverWallet.assetCode}`);
 
+    // Obtener grant para crear incoming payment
+    const incomingGrant = await receiverClient.grant.request(
+      {
+        url: receiverWallet.authServer,
+      },
+      {
+        access_token: {
+          access: [
+            {
+              type: "incoming-payment",
+              actions: ["create", "read", "list"],
+            },
+          ],
+        },
+      },
+    );
 
-    // Here, we get the grant for quote creation
+    if (!isFinalizedGrant(incomingGrant)) {
+      throw new Error(`Interactive grant required for receiver. Redirect to: ${incomingGrant.interact.redirect}`);
+    }
+
+    console.log("Incoming payment grant created");
+
+    // Crear incoming payment
+    const incomingPayment = await receiverClient.incomingPayment.create(
+      {
+        url: receiverWallet.resourceServer,
+        accessToken: incomingGrant.access_token.value,
+      },
+      {
+        walletAddress: receiverWallet.id,
+        incomingAmount: {
+          value: Math.round(amount * Math.pow(10, receiverWallet.assetScale)).toString(),
+          assetCode: receiverWallet.assetCode,
+          assetScale: receiverWallet.assetScale,
+        },
+        expiresAt: new Date(Date.now() + 60_000 * 10).toISOString(),
+        metadata: {
+          description: description || 'Payment request'
+        }
+      }
+    );
+
+    console.log("Created incoming payment:", incomingPayment.id);
+    return incomingPayment;
+
+  } catch (error) {
+    console.error("Error creating incoming payment:", error);
+    throw error;
+  }
+}
+
+// create quote with proper grant handling
+async function createQuote(senderId, incomingPaymentUrl) {
+  try {
+    const client = await getClient(senderId);
+    const sendingWallet = await getWalletInfo(senderId);
+
+    console.log(`Creating quote for sender ${senderId} to incoming payment ${incomingPaymentUrl}`);
+
+    // CORRECTED: Request quote grant from SENDER's auth server
     const quoteGrant = await client.grant.request(
       {
-        url: receiverPaymentPointer.authServer,
+        url: sendingWallet.authServer, 
       },
       {
         access_token: {
@@ -97,9 +156,13 @@ async function createQuote (senderId, receiverPaymentPointer, amount) {
       },
     );
 
-    console.log("Quote grant successfully created");
+    if (!isFinalizedGrant(quoteGrant)) {
+      throw new Error(`Interactive grant required for quote. Redirect to: ${quoteGrant.interact.redirect}`);
+    }
 
-    // Now, we create quote with receiver's payment pointer
+    console.log("Quote grant created");
+
+    // CORRECTED: Create quote using sender's resource server and finalized grant
     const quote = await client.quote.create(
       {
         url: sendingWallet.resourceServer,
@@ -108,37 +171,28 @@ async function createQuote (senderId, receiverPaymentPointer, amount) {
       {
         method: "ilp",
         walletAddress: sendingWallet.id,
-        receiver: receiverPaymentPointer,
-        debitAmount: {
-          value: (amount * Math.pow(10, sendingWallet.assetScale)).toString(),
-          assetCode: sendingWallet.assetCode,
-          assetScale: sendingWallet.assetScale,
-        }
-        
+        receiver: incomingPaymentUrl, // THE INCOMING PAYMENT URL, NOT THE WALLET ADDRESS
       }
-    )
+    );
 
-    console.log("Created quote: ", quote);
+    console.log("Created quote: ", quote.id);
     return quote;
 
   } catch (error) {
-    console.log("There was an error creating the quote: ", error);
+    console.error("Error creating quote: ", error);
+    throw error;
   }
-    
 }
 
-
-
-async function createOutgoingPayment (senderId, quoteId) {
-
+// CORRECTED: Improved outgoing payment creation
+async function createOutgoingPayment(senderId, quote) {
   try {
-
     const client = await getClient(senderId);
     const sendingWallet = await getWalletInfo(senderId);
 
-    console.log(`Creating outgoing payment for quote: ${quoteId}`);
+    console.log(`Creating outgoing payment for quote: ${quote.id}`);
 
-    // Generate grant for outgoing payment
+    // Request grant for outgoing payment
     const outgoingPaymentGrant = await client.grant.request(
       {
         url: sendingWallet.authServer,
@@ -149,17 +203,31 @@ async function createOutgoingPayment (senderId, quoteId) {
             {
               identifier: sendingWallet.id,
               type: "outgoing-payment",
-              actions: ["list", "list-all", "read", "read-all", "create"]
+              actions: ["create"],
+              limits: {
+                debitAmount: quote.debitAmount
+              }
             },
           ],
         },
+        interact: {  // add user interaction
+          start: ["redirect"]
+        }
       },
     );
 
-    console.log("The grant for outgoing payment was created: ", outgoingPaymentGrant);
+    if (!isFinalizedGrant(outgoingPaymentGrant)) {
+      console.log("Interactive authorization required");
+      return {
+        requiresInteraction: true,
+        interactionUrl: outgoingPaymentGrant.interact.redirect,
+        continueUri: outgoingPaymentGrant.continue.uri,
+        continueToken: outgoingPaymentGrant.continue.access_token.value,
+        message: "User authorization required"
+      };
+    }
 
-
-    // Create the actual outgoing payment
+    // Create the outgoing payment
     const outgoingPayment = await client.outgoingPayment.create(
       {
         url: sendingWallet.resourceServer,
@@ -167,57 +235,151 @@ async function createOutgoingPayment (senderId, quoteId) {
       },
       {
         walletAddress: sendingWallet.id,
-        quoteId: quoteId,
+        quoteId: quote.id,
       },
     );
 
-    console.log('Created outgoing payment:', outgoingPayment.id);
-    return outgoingPayment;
+    console.log("Created outgoing payment: ", outgoingPayment.id);
+    return {
+      success: true,
+      paymentId: outgoingPayment.id,
+      state: outgoingPayment.state
+    };
     
   } catch (error) {
-    console.error('Error in createOutgoingPayment:', error);
-    
+    console.error("Error in createOutgoingPayment: ", error);
+    throw error;
   }
-
 }
 
-async function sendPayment(senderId, receiverPaymentPointer, amount) {
+// main payment function
+async function sendPayment(senderId, receiverId, amount) {
   try {
-    console.log(`Iniciando pago: ${senderId} -> ${receiverPaymentPointer}, ${amount}`);
-    
-  // step 1: create quote
-  console.log('step 1: creating quote...');
-  const quote = await createQuote(senderId, receiverPaymentPointer, amount);
-  console.log('✓ Created quote');
-    
-  // step 2: create the outgoing payment
-  console.log('step 3: requesting grant...');
-  const outgoingPayment = await createOutgoingPayment(senderId, quote.id);
-  console.log('✓ Created outgoing payment');
+    console.log(`Starting payment: ${senderId} -> ${receiverId}, ${amount}`);
 
-  return {
-    success: true,
-    status: outgoingPayment.state,
-    paymentId: outgoingPayment.id,
-    amount: amount,
-    receiver: receiverPaymentPointer,
-    message: 'Payment initiated successfully'
-  };
+    // PASO 1: Receptor crea incoming payment
+    console.log("Step 1: Receiver creating incoming payment...");
+    const incomingPayment = await createIncomingPayment(
+      receiverId, 
+      amount, 
+      `Payment from ${senderId}`
+    );
+    console.log("✓ Incoming payment created", incomingPayment);
     
+    // Step 1: Create quote
+    console.log("Step 2: Creating quote...");
+    const quote = await createQuote(senderId, incomingPayment.id);
+    console.log("✓ Created quote:", quote.id);
+      
+    // Step 3: Create the outgoing payment
+    console.log("Step 2: Creating outgoing payment...");
+    const outgoingPayment = await createOutgoingPayment(senderId, quote.id);
+    console.log("✓ Created outgoing payment:", outgoingPayment.id);
+
+    if (outgoingPayment.requiresInteraction) {
+      return {
+        success: true,
+        status: 'pending_interaction',
+        requiresInteraction: true,
+        interactionUrl: outgoingPayment.interactionUrl,
+        continueToken: outgoingPayment.continueToken,
+        continueUri: outgoingPayment.continueUri,
+        quoteId: quote.id,
+        incomingPaymentId: incomingPayment.id,
+        amount: amount,
+        sender: senderId,
+        receiver: receiverId,
+        debitAmount: `${quote.debitAmount.value/Math.pow(10, quote.debitAmount.assetScale)} ${quote.debitAmount.assetCode}`,
+        receiveAmount: `${quote.receiveAmount.value/Math.pow(10, quote.receiveAmount.assetScale)} ${quote.receiveAmount.assetCode}`,
+        message: 'Payment setup complete - user authorization required'
+      };
+    }
+    
+    console.log("✓ Payment completed");
+
+
+    return {
+      success: true,
+      status: outgoingPayment.state,
+      paymentId: outgoingPayment.id,
+      incomingPaymentId: incomingPayment.id,
+      quoteId: quote.id,
+      amount: amount,
+      sender: senderId,
+      receiver: receiverId,
+      debitAmount: `${quote.debitAmount.value/Math.pow(10, quote.debitAmount.assetScale)} ${quote.debitAmount.assetCode}`,
+      receiveAmount: `${quote.receiveAmount.value/Math.pow(10, quote.receiveAmount.assetScale)} ${quote.receiveAmount.assetCode}`,
+      message: 'Payment completed successfully'
+    };
     
   } catch (error) {
-    console.error('Error in sending payment:', error);
+    console.error("Error in sending payment: ", error);
 
     return {
       success: false,
       error: error.message,
       details: {
-        description: error.description,
-        status: error.status,
-        code: error.code
+        description: error.description || "No description available",
+        status: error.status || "Unknown status",
+        code: error.code || "Unknown code",
+        // ADDED: More detailed error context
+        timestamp: new Date().toISOString(),
+        sender: senderId,
+        receiver: receiverId
       }
     };
-    
+  }
+}
+
+async function continueGrant(continueUri, continueToken, interactRef) {
+  try {
+    const response = await fetch(continueUri, {
+      method: 'POST',
+      headers: {
+        'Authorization': `GNAP ${continueToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        interact_ref: interactRef
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error continuing grant:', error);
+    throw error;
+  }
+}
+
+// Función para completar pago después de autorización
+async function completePaymentAfterAuth(senderId, quoteId, accessToken) {
+  try {
+    const client = await getClient(senderId);
+    const sendingWallet = await getWalletInfo(senderId);
+
+    const outgoingPayment = await client.outgoingPayment.create(
+      {
+        url: sendingWallet.resourceServer,
+        accessToken: accessToken,
+      },
+      {
+        walletAddress: sendingWallet.id,
+        quoteId: quoteId,
+      },
+    );
+
+    return {
+      success: true,
+      paymentId: outgoingPayment.id,
+      state: outgoingPayment.state
+    };
+  } catch (error) {
+    console.error('Error completing payment:', error);
+    throw error;
   }
 }
 
@@ -225,6 +387,10 @@ export {
   getClient,
   getWalletInfo,
   createQuote,
+  createIncomingPayment,
   createOutgoingPayment,
-  sendPayment
+  sendPayment,
+  continueGrant,
+  completePaymentAfterAuth
 };
+
