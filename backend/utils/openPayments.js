@@ -10,8 +10,6 @@
 // //   // make it match with the receiver wallet address (payment pointer)
 // // }
 
-// // THIS IS A SECOND VERSION OF THE FIRST OPEN PAYMENTS IMPLEMENTATION FROM THE openPayments.js file! 
-
 import { createAuthenticatedClient, isFinalizedGrant, OpenPaymentsClientError } from '@interledger/open-payments';
 import { readFileSync } from 'fs';
 
@@ -368,57 +366,6 @@ async function sendPayment(senderId, receiverId, amount) {
   }
 }
 
-// async function continueGrant(continueUri, continueToken, interactRef) {
-//   try {
-//     const response = await fetch(continueUri, {
-//       method: 'POST',
-//       headers: {
-//         'Authorization': `GNAP ${continueToken}`,
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({
-//         interact_ref: interactRef
-//       })
-//     });
-
-//     if (!response.ok) {
-//       throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-//     }
-
-//     return await response.json();
-//   } catch (error) {
-//     console.error('Error continuing grant:', error);
-//     throw error;
-//   }
-// }
-
-// // Función para completar pago después de autorización
-// async function completePaymentAfterAuth(senderId, quoteId, accessToken) {
-//   try {
-//     const client = await getClient(senderId);
-//     const sendingWallet = await getWalletInfo(senderId);
-
-//     const outgoingPayment = await client.outgoingPayment.create(
-//       {
-//         url: sendingWallet.resourceServer,
-//         accessToken: accessToken,
-//       },
-//       {
-//         walletAddress: sendingWallet.id,
-//         quoteId: quoteId,
-//       },
-//     );
-
-//     return {
-//       success: true,
-//       paymentId: outgoingPayment.id,
-//       state: outgoingPayment.state
-//     };
-//   } catch (error) {
-//     console.error('Error completing payment:', error);
-//     throw error;
-//   }
-// }
 
 export {
   getClient,
@@ -426,8 +373,6 @@ export {
   createQuote,
   createIncomingPayment,
   createOutgoingPayment,
-  sendPayment,
-  // continueGrant,
-  // completePaymentAfterAuth,
+  sendPayment
 };
 
