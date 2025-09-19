@@ -12,7 +12,7 @@
 
 // // THIS IS A SECOND VERSION OF THE FIRST OPEN PAYMENTS IMPLEMENTATION FROM THE openPayments.js file! 
 
-import { createAuthenticatedClient, isFinalizedGrant } from '@interledger/open-payments';
+import { createAuthenticatedClient, isFinalizedGrant, OpenPaymentsClientError } from '@interledger/open-payments';
 import { readFileSync } from 'fs';
 
 import readline from 'readline/promises'
@@ -207,9 +207,7 @@ async function createOutgoingPayment(senderId, quote) {
               type: "outgoing-payment",
               actions: ["read", "create"],
               limits: {
-                debitAmount: {
-                  value: quote.debitAmount,
-                }
+                debitAmount: quote.debitAmount
               }
             },
           ],
@@ -251,6 +249,8 @@ async function createOutgoingPayment(senderId, quote) {
 
         throw err
       }
+
+      console.log(".......................This is the finalized outgoing payment grant: ", finalizedOutgoingPaymentGrant);
 
       if (!isFinalizedGrant(finalizedOutgoingPaymentGrant)) {
         console.log(
@@ -310,7 +310,7 @@ async function sendPayment(senderId, receiverId, amount) {
       
     // Step 3: Create the outgoing payment
     console.log("Step 2: Creating outgoing payment...");
-    const outgoingPayment = await createOutgoingPayment(senderId, quote.id);
+    const outgoingPayment = await createOutgoingPayment(senderId, quote);
     console.log("✓ Created outgoing payment:", outgoingPayment.id);
 
     if (outgoingPayment.requiresInteraction) {

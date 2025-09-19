@@ -64,5 +64,5 @@ async function testPayment() {
 }
 
 // Uncomment the one you want to test:
-testIndividualFunctions();
+// testIndividualFunctions();
 testPayment();
