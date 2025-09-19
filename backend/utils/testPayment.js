@@ -36,7 +36,7 @@ async function testIndividualFunctions() {
   }
 }
 
-async function testPushPayment() {
+async function testPayment() {
   try {
     console.log('=== Testing Push Payment Flow ===');
     
@@ -65,4 +65,4 @@ async function testPushPayment() {
 
 // Uncomment the one you want to test:
 testIndividualFunctions();
-testPushPayment();
+testPayment();
