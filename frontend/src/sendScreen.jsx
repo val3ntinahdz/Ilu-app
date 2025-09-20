@@ -52,10 +52,109 @@ function FormField({ label, name, type = 'text', value, onChange, placeholder, r
   );
 }
 
+/**
+ * Componente para mostrar el estado de autorización
+ */
+function AuthorizationPanel({ authData, onRetry, onCancel }) {
+  const [authWindow, setAuthWindow] = useState(null);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const handleAuthorize = () => {
+    // Abrir ventana de autorización
+    const newWindow = window.open(
+      authData.authorizationUrl,
+      'authorization',
+      'width=600,height=700,scrollbars=yes,resizable=yes'
+    );
+    setAuthWindow(newWindow);
+
+    // Monitorear si la ventana se cierra
+    const checkClosed = setInterval(() => {
+      if (newWindow.closed) {
+        clearInterval(checkClosed);
+        setAuthWindow(null);
+        // Dar tiempo para que el pago se procese
+        setIsChecking(true);
+        setTimeout(() => {
+          setIsChecking(false);
+          onRetry(); // Verificar estado del pago
+        }, 3000);
+      }
+    }, 1000);
+  };
+
+  return (
+    <div className="authorization-panel">
+      <div className="auth-header">
+        <h3>Autorización Requerida</h3>
+        <p>Miguel necesita autorizar este pago en su wallet.</p>
+      </div>
+      
+      <div className="payment-details">
+        <div className="detail-row">
+          <span>Monto a enviar:</span>
+          <span>${authData.breakdown.toFamily}</span>
+        </div>
+        <div className="detail-row">
+          <span>Monto que se debitará:</span>
+          <span>{authData.paymentDetails.debitAmount}</span>
+        </div>
+        <div className="detail-row">
+          <span>Monto que recibirá:</span>
+          <span>{authData.paymentDetails.receiveAmount}</span>
+        </div>
+      </div>
+
+      <div className="auth-actions">
+        <button 
+          onClick={handleAuthorize} 
+          className="auth-button primary"
+          disabled={isChecking}
+        >
+          {isChecking ? 'Verificando...' : 'Abrir Autorización'}
+        </button>
+        <button 
+          onClick={onCancel} 
+          className="auth-button secondary"
+          disabled={isChecking}
+        >
+          Cancelar
+        </button>
+      </div>
+
+      <div className="auth-instructions">
+        <p>
+          <strong>Instrucciones:</strong>
+        </p>
+        <ol>
+          <li>Haz clic en "Abrir Autorización"</li>
+          <li>Se abrirá una nueva ventana</li>
+          <li>Autoriza el pago en tu wallet</li>
+          <li>Cierra la ventana cuando veas "Accepted"</li>
+          <li>El pago se procesará automáticamente</li>
+        </ol>
+      </div>
+
+      {authWindow && !authWindow.closed && (
+        <div className="auth-status">
+          <span className="status-indicator"></span>
+          <span>Ventana de autorización abierta...</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const DEFAULT_FORM = {
-  destinatario: '',
+  destinatario: 'dominga', // Pre-filled for demo
   concepto: '',
   cantidad: '',
+};
+
+// Map wallet addresses to user-friendly names
+const RECIPIENTS = {
+  'dominga': 'Dominga García (Oaxaca)',
+  'miguel': 'Miguel García (Los Angeles)'
 };
 
 const SendScreen = () => {
@@ -63,20 +162,18 @@ const SendScreen = () => {
   
   // Estado para los campos del formulario
   const [form, setForm] = useState(DEFAULT_FORM);
-  const [isSending, setIsSending] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [paymentState, setPaymentState] = useState('idle'); // idle, processing, authorization, completed, error
   const [errorMsg, setErrorMsg] = useState('');
   const [availableBalance, setAvailableBalance] = useState(null);
   const [isBalanceLoading, setIsBalanceLoading] = useState(true);
-  const [lastSentAmount, setLastSentAmount] = useState(null);
   const [balanceUpdated, setBalanceUpdated] = useState(false);
+  const [paymentResult, setPaymentResult] = useState(null);
 
-  // backend connection
+  // Backend connection
   useEffect(() => {
     const fetchUserBalance = async () => {
       setIsBalanceLoading(true);
       try {
-        // Asumiendo que el usuario logueado es 'miguel' - en una app real vendría del contexto de autenticación
         const balance = await apiService.getUserBalance('miguel');
         setAvailableBalance(balance);
       } catch (error) {
@@ -90,7 +187,7 @@ const SendScreen = () => {
     fetchUserBalance();
   }, []);
 
-  // form validation
+  // Form validation
   function validateForm(fields, availableBalance) {
     if (!fields.destinatario || !fields.cantidad) {
       return 'Todos los campos obligatorios deben ser llenados.';
@@ -104,63 +201,137 @@ const SendScreen = () => {
     return '';
   }
 
-  // handle changes in form fields
+  // Handle changes in form fields
   const handleChange = useCallback(e => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
     setErrorMsg('');
   }, []);
 
-  // handle navigation
+  // Handle navigation
   const handleGoBack = () => {
     navigate('/home');
   };
 
-  // real payment with backend
+  // Reset payment state
+  const handleReset = () => {
+    setPaymentState('idle');
+    setPaymentResult(null);
+    setErrorMsg('');
+    setForm(DEFAULT_FORM);
+  };
+
+  // Retry/check payment status
+  const handleRetry = async () => {
+    if (paymentResult?.transactionId) {
+      try {
+        setPaymentState('processing');
+        const status = await apiService.checkPaymentStatus(paymentResult.transactionId);
+        
+        if (status.success && status.status === 'COMPLETED') {
+          setPaymentState('completed');
+          // Update balance
+          const newBalance = await apiService.getUserBalance('miguel');
+          setAvailableBalance(newBalance);
+          setBalanceUpdated(true);
+          setTimeout(() => setBalanceUpdated(false), 600);
+        } else {
+          setPaymentState('authorization');
+        }
+      } catch (error) {
+        setPaymentState('error');
+        setErrorMsg('Error verificando el estado del pago');
+      }
+    }
+  };
+
+  // Real payment with backend
   const handleSubmit = async e => {
     e.preventDefault();
     setErrorMsg('');
-    setSuccess(false);
+    setPaymentState('processing');
 
     // Validación
     const validation = validateForm(form, availableBalance);
     if (validation) {
       setErrorMsg(validation);
+      setPaymentState('idle');
       return;
     }
 
     const amountToSend = Number(form.cantidad);
-    const receiverWalletAddress = form.destinatario;
-    setIsSending(true);
 
     try {
       // Llamada real al backend para realizar la transferencia
-      // get the receiver wallet address
-      const result = await apiService.sendMoney('miguel', 'dominga', amountToSend, receiverWalletAddress);
+      const result = await apiService.sendMoney('miguel', form.destinatario, amountToSend);
       
-      // if (receiverWalletAddress != )
+      // Debug temporal - quitar después
+      console.log('Resultado del backend:', result);
+      
       if (result.success) {
-        setIsSending(false);
-        setSuccess(true);
-        setLastSentAmount(amountToSend);
+        setPaymentResult(result);
         
-        // Actualizar el saldo con los datos reales del backend
-        // El backend ya actualiza la base de datos, solo actualizamos la UI
-        setAvailableBalance(prev => prev - amountToSend);
-        setBalanceUpdated(true);
-        
-        // Remover la clase de animación después de que termine
-        setTimeout(() => setBalanceUpdated(false), 600);
-        
-        setForm(DEFAULT_FORM);
-        
-        // Usuario puede navegar manualmente usando el botón de regresar
+        if (result.status === 'PENDING_AUTHORIZATION') {
+          // Automáticamente abrir el link de autorización
+          setPaymentState('authorization');
+          
+          // Abrir inmediatamente la ventana de autorización
+          setTimeout(() => {
+            const authWindow = window.open(
+              result.authorizationUrl,
+              'authorization',
+              'width=600,height=700,scrollbars=yes,resizable=yes'
+            );
+
+            // Monitorear cuando se cierre la ventana
+            const checkClosed = setInterval(() => {
+              if (authWindow.closed) {
+                clearInterval(checkClosed);
+                
+                // Después de cerrar, verificar el estado del pago
+                setPaymentState('processing');
+                
+                setTimeout(async () => {
+                  try {
+                    // Verificar si el pago se completó
+                    const newBalance = await apiService.getUserBalance('miguel');
+                    
+                    // Si el balance cambió, el pago fue exitoso
+                    if (newBalance < availableBalance) {
+                      setPaymentState('completed');
+                      setAvailableBalance(newBalance);
+                      setBalanceUpdated(true);
+                      setTimeout(() => setBalanceUpdated(false), 600);
+                    } else {
+                      // Si no cambió, mostrar error
+                      setPaymentState('error');
+                      setErrorMsg('El pago no se completó. Por favor intenta de nuevo.');
+                    }
+                  } catch (error) {
+                    setPaymentState('error');
+                    setErrorMsg('Error verificando el estado del pago');
+                  }
+                }, 2000); // Esperar 2 segundos para que se procese el pago
+              }
+            }, 1000);
+            
+          }, 500); // Pequeña pausa antes de abrir la ventana
+          
+        } else if (result.status === 'COMPLETED') {
+          // Payment completed immediately
+          setPaymentState('completed');
+          
+          // Update balance
+          setAvailableBalance(prev => prev - amountToSend);
+          setBalanceUpdated(true);
+          setTimeout(() => setBalanceUpdated(false), 600);
+        }
       } else {
-        setIsSending(false);
+        setPaymentState('error');
         setErrorMsg(result.error || 'Error al procesar la transferencia');
       }
     } catch (error) {
       console.error('Error enviando dinero:', error);
-      setIsSending(false);
+      setPaymentState('error');
       
       // Mensajes de error más específicos
       if (error.message.includes('fetch')) {
@@ -175,9 +346,6 @@ const SendScreen = () => {
     }
   };
 
-  // Para futuras expansiones: hooks y handlers pueden dividirse en custom hooks
-  // Ejemplo: useAvailableBalance, useSendMoney, etc.
-
   return (
     <div className="send-screen">
       <header className="send-header">
@@ -186,70 +354,193 @@ const SendScreen = () => {
           <span>Regresar</span>
         </button>
         <h1>Enviar Dinero</h1>
-        <p>Transfiere fácilmente a tus contactos o cuentas</p>
+        <p>Transfiere fácilmente usando Open Payments</p>
         <BalanceInfo amount={availableBalance} loading={isBalanceLoading} isUpdated={balanceUpdated} />
       </header>
 
       <main className="send-main">
-        <form className="send-form" onSubmit={handleSubmit} autoComplete="off">
-          <FormField
-            label="Destinatario"
-            name="destinatario"
-            value={form.destinatario}
-            onChange={handleChange}
-            placeholder="Ejemplo: $ilp-interledger-test.dev/..."
-            required
-            disabled={isSending}
-          />
-          <FormField
-            label="Concepto"
-            name="concepto"
-            value={form.concepto}
-            onChange={handleChange}
-            placeholder="¿Para qué es este envío?"
-            maxLength={50}
-            disabled={isSending}
-          />
-          <FormField
-            label="Cantidad"
-            name="cantidad"
-            type="number"
-            value={form.cantidad}
-            onChange={handleChange}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-            required
-            disabled={isSending}
-          />
-          {errorMsg && <div className="form-error">{errorMsg}</div>}
-          {success && lastSentAmount && (
-            <div className="form-success">
-              <div className="success-title">¡Transferencia realizada exitosamente!</div>
-              <div className="success-amount">
-                Cantidad enviada: {new Intl.NumberFormat('es-MX', {
-                  style: 'currency',
-                  currency: 'USD',
-                  minimumFractionDigits: 2,
-                }).format(lastSentAmount)}
-              </div>
-              <div className="success-note">El dinero ha sido transferido y tu saldo actualizado.</div>
+        {paymentState === 'idle' && (
+          <form className="send-form" onSubmit={handleSubmit} autoComplete="off">
+            <div className="form-group">
+              <label htmlFor="destinatario">
+                Destinatario <span>*</span>
+              </label>
+              <select
+                id="destinatario"
+                name="destinatario"
+                value={form.destinatario}
+                onChange={handleChange}
+                required
+                disabled={paymentState === 'processing'}
+              >
+                <option value="">Selecciona un destinatario</option>
+                {Object.entries(RECIPIENTS).map(([id, name]) => (
+                  <option key={id} value={id}>{name}</option>
+                ))}
+              </select>
             </div>
-          )}
-          <button
-            type="submit"
-            className="send-btn"
-            disabled={isSending || isBalanceLoading}
-          >
-            {isSending ? (
-              <span className="sending-loader"></span>
-            ) : (
-              <>
-                <span>Transferir</span>
-              </>
-            )}
-          </button>
-        </form>
+
+            <FormField
+              label="Concepto"
+              name="concepto"
+              value={form.concepto}
+              onChange={handleChange}
+              placeholder="¿Para qué es este envío?"
+              maxLength={50}
+              disabled={paymentState === 'processing'}
+            />
+            
+            <FormField
+              label="Cantidad"
+              name="cantidad"
+              type="number"
+              value={form.cantidad}
+              onChange={handleChange}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              required
+              disabled={paymentState === 'processing'}
+            />
+            
+            {errorMsg && <div className="form-error">{errorMsg}</div>}
+            
+            <button
+              type="submit"
+              className="send-btn"
+              disabled={paymentState === 'processing' || isBalanceLoading}
+            >
+              {paymentState === 'processing' ? (
+                <span className="sending-loader"></span>
+              ) : (
+                <span>Transferir con Open Payments</span>
+              )}
+            </button>
+          </form>
+        )}
+
+        {paymentState === 'processing' && (
+          <div className="processing-panel">
+            <div className="sending-loader large"></div>
+            <h3>Procesando pago...</h3>
+            <p>Configurando la transferencia con Open Payments</p>
+          </div>
+        )}
+
+        {paymentState === 'authorization' && paymentResult && (
+          <div className="authorization-panel">
+            <div className="auth-header">
+              <h3>Autorizando Transferencia</h3>
+              <p>Se ha abierto una ventana para que Miguel autorice el pago.</p>
+            </div>
+            
+            <div className="payment-details">
+              <div className="detail-row">
+                <span>Monto a enviar:</span>
+                <span>${form.cantidad}</span>
+              </div>
+              <div className="detail-row">
+                <span>Destinatario:</span>
+                <span>{RECIPIENTS[form.destinatario]}</span>
+              </div>
+              {paymentResult.breakdown && (
+                <>
+                  <div className="detail-row">
+                    <span>A la familia:</span>
+                    <span>${paymentResult.breakdown.toFamily}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span>A ahorros:</span>
+                    <span>${paymentResult.breakdown.toSavings}</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="auth-instructions">
+              <p>
+                <strong>Instrucciones:</strong>
+              </p>
+              <ol>
+                <li>Se abrió automáticamente una ventana de autorización</li>
+                <li>Haz clic en "Accept" en esa ventana</li>
+                <li>Verás la palabra "Accepted"</li>
+                <li>Cierra esa ventana</li>
+                <li>La transferencia se completará automáticamente</li>
+              </ol>
+            </div>
+
+            <div className="auth-status">
+              <span className="status-indicator pulsing"></span>
+              <span>Esperando autorización de Miguel...</span>
+            </div>
+
+            <div className="auth-actions">
+              <button onClick={handleReset} className="auth-button secondary">
+                Cancelar transferencia
+              </button>
+            </div>
+          </div>
+        )}
+
+        {paymentState === 'completed' && paymentResult && (
+          <div className="success-panel">
+            <div className="success-icon">✓</div>
+            <h3>¡Transferencia Completada!</h3>
+            
+            <div className="success-details">
+              <div className="detail-row">
+                <span>Destinatario:</span>
+                <span>{RECIPIENTS[form.destinatario]}</span>
+              </div>
+              <div className="detail-row">
+                <span>Cantidad enviada:</span>
+                <span>${form.cantidad}</span>
+              </div>
+              {paymentResult.breakdown && (
+                <>
+                  <div className="detail-row">
+                    <span>A la familia:</span>
+                    <span>${paymentResult.breakdown.toFamily}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span>A ahorros:</span>
+                    <span>${paymentResult.breakdown.toSavings}</span>
+                  </div>
+                </>
+              )}
+              <div className="detail-row">
+                <span>ID de transacción:</span>
+                <span className="transaction-id">{paymentResult.transactionId}</span>
+              </div>
+            </div>
+            
+            <div className="success-actions">
+              <button onClick={handleReset} className="send-btn">
+                Realizar otra transferencia
+              </button>
+              <button onClick={handleGoBack} className="send-btn secondary">
+                Volver al inicio
+              </button>
+            </div>
+          </div>
+        )}
+
+        {paymentState === 'error' && (
+          <div className="error-panel">
+            <div className="error-icon">⚠</div>
+            <h3>Error en la transferencia</h3>
+            <p>{errorMsg}</p>
+            <div className="error-actions">
+              <button onClick={handleReset} className="send-btn">
+                Intentar de nuevo
+              </button>
+              <button onClick={handleGoBack} className="send-btn secondary">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -184,7 +184,6 @@ async function createQuote(senderId, incomingPaymentUrl) {
   }
 }
 
-// CORRECTED: Improved outgoing payment creation
 async function createOutgoingPayment(senderId, quote) {
   try {
     const client = await getClient(senderId);
@@ -292,7 +291,7 @@ async function sendPayment(senderId, receiverId, amount) {
   try {
     console.log(`Starting payment: ${senderId} -> ${receiverId}, ${amount}`);
 
-    // PASO 1: Receptor crea incoming payment
+    // receiver creates incoming payment
     console.log("Step 1: Receiver creating incoming payment...");
     const incomingPayment = await createIncomingPayment(
       receiverId, 
@@ -335,8 +334,8 @@ async function sendPayment(senderId, receiverId, amount) {
 
     return {
       success: true,
-      status: outgoingPayment.state,
-      paymentId: outgoingPayment.id,
+      status: outgoingPayment.state || 'COMPLETED', // extract the outgoing payment state, else, mark it as completed
+      paymentId: outgoingPayment.paymentId,
       incomingPaymentId: incomingPayment.id,
       quoteId: quote.id,
       amount: amount,
@@ -357,7 +356,6 @@ async function sendPayment(senderId, receiverId, amount) {
         description: error.description || "No description available",
         status: error.status || "Unknown status",
         code: error.code || "Unknown code",
-        // ADDED: More detailed error context
         timestamp: new Date().toISOString(),
         sender: senderId,
         receiver: receiverId
