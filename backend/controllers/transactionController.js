@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import calculations from '../utils/calculations.js';
-import { sendPayment as sendOpenPayment } from '../utils/openPayments.js';
+import { sendPayment as sendOpenPayment, completePaymentAfterAuth } from '../utils/openPayments.js';
 // import aiMock from '../utils/aiMock.js';
 
 
@@ -91,7 +91,10 @@ export const sendPayment = async (req, res) => {
           success: true,
           status: 'PENDING_AUTHORIZATION',
           requiresInteraction: true,
-          authorizationUrl: paymentResult.interactionUrl,
+          authorizationUrl: paymentResult.authorizationUrl,
+          sender: senderId,
+          receiver: receiverId,  
+          amount: amount,
           breakdown: breakdown.breakdown,
           paymentDetails: {
             quoteId: paymentResult.quoteId,
@@ -195,6 +198,68 @@ async function updateDatabase(senderId, receiverId, amount, breakdown, paymentRe
   writeDatabase(database);
 
 }
+
+export const completePayment = async (req, res) => {
+  try {
+    const { senderId, receiverId, amount, quoteId, continueUri, continueToken } = req.body;
+    
+    console.log('=== COMPLETING PAYMENT AFTER AUTHORIZATION ===');
+    console.log('Sender:', senderId);
+    console.log('Receiver:', receiverId);
+    console.log('Amount:', amount);
+    console.log('Quote ID:', quoteId);
+    
+    // Validate required fields
+    if (!senderId || !receiverId || !amount || !quoteId || !continueUri || !continueToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields for payment completion'
+      });
+    }
+    
+    // Complete the payment in Open Payments
+    const paymentResult = await completePaymentAfterAuth(
+      senderId, 
+      quoteId, 
+      continueUri, 
+      continueToken
+    );
+    
+    console.log('Payment completion result:', paymentResult);
+    
+    if (paymentResult.success) {
+      // Calculate breakdown for database update
+      const breakdown = calculations.calculateBreakdown(amount);
+      
+      // Update database with completed payment
+      await updateDatabase(senderId, receiverId, amount, breakdown, paymentResult);
+      
+      console.log('Database updated successfully');
+      
+      return res.json({
+        success: true,
+        status: 'COMPLETED',
+        transactionId: paymentResult.paymentId,
+        breakdown: breakdown.breakdown,
+        message: 'Payment completed successfully after authorization'
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: paymentResult.error || 'Failed to complete payment',
+        details: paymentResult
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error in completePayment controller:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: 'Error completing payment after authorization'
+    });
+  }
+};
 
 
 // ---------> TODO Function: check the payment status endpoint and query Open Payments system (for now, local database in json)

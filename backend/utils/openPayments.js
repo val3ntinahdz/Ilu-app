@@ -184,6 +184,83 @@ async function createQuote(senderId, incomingPaymentUrl) {
   }
 }
 
+// async function createOutgoingPayment(senderId, quote) {
+//   try {
+//     const client = await getClient(senderId);
+//     const sendingWallet = await getWalletInfo(senderId);
+
+//     console.log(`Creating outgoing payment for quote: ${quote.id}`);
+
+//     // Request grant for outgoing payment
+//     const outgoingPaymentGrant = await client.grant.request(
+//       {
+//         url: sendingWallet.authServer,
+//       },
+//       {
+//         access_token: {
+//           access: [
+//             {
+//               identifier: sendingWallet.id,
+//               type: "outgoing-payment",
+//               actions: ["read", "create"],
+//               limits: {
+//                 debitAmount: quote.debitAmount
+//               }
+//             },
+//           ],
+//         },
+//         interact: { 
+//           start: ["redirect"]
+//         }
+//       },
+//     );
+
+//     console.log(
+//     '\ngot pending outgoing payment grant',
+//     outgoingPaymentGrant
+//     )
+
+
+//     // if outgoing payments redirects 
+//     if (outgoingPaymentGrant.interact && outgoingPaymentGrant.interact.redirect) {
+//       console.log('Payment requires authorization at:', outgoingPaymentGrant.interact.redirect);
+//     }
+
+//     if (outgoingPaymentGrant.interact && outgoingPaymentGrant.interact.redirect) {
+//       return {
+//         requiresInteraction: true,
+//         interactionUrl: outgoingPaymentGrant.interact.redirect,
+//         continueUri: outgoingPaymentGrant.continue.uri,
+//         continueToken: outgoingPaymentGrant.continue.access_token.value,
+//         message: "User authorization required"
+//       };
+//     }
+
+//     // Create the outgoing payment
+//     const outgoingPayment = await client.outgoingPayment.create(
+//       {
+//         url: sendingWallet.resourceServer,
+//         accessToken: outgoingPaymentGrant.access_token.value,
+//       },
+//       {
+//         walletAddress: sendingWallet.id,
+//         quoteId: quote.id,
+//       },
+//     );
+
+//     console.log("Created outgoing payment: ", outgoingPayment.id);
+//     return {
+//       success: true,
+//       paymentId: outgoingPayment.id,
+//       state: outgoingPayment.state
+//     };
+    
+//   } catch (error) {
+//     console.error("Error in createOutgoingPayment: ", error);
+//     throw error;
+//   }
+// }
+
 async function createOutgoingPayment(senderId, quote) {
   try {
     const client = await getClient(senderId);
@@ -215,70 +292,23 @@ async function createOutgoingPayment(senderId, quote) {
       },
     );
 
-    console.log(
-    '\ngot pending outgoing payment grant',
-    outgoingPaymentGrant
-    )
-    console.log(
-      'Please navigate to the following URL, to accept the interaction from the sending wallet:'
-    )
-    console.log(outgoingPaymentGrant.interact.redirect)
+    console.log('Got pending outgoing payment grant', outgoingPaymentGrant);
 
-    await readline
-    .createInterface({ input: process.stdin, output: process.stdout })
-    .question('\nPlease accept grant and press enter...')
+    // Miguel's wallet always requires authorization, just return the auth info
+    if (outgoingPaymentGrant.interact && outgoingPaymentGrant.interact.redirect) {
+      console.log('Payment requires authorization at:', outgoingPaymentGrant.interact.redirect);
+      
+      return {
+        requiresInteraction: true,
+        interactionUrl: outgoingPaymentGrant.interact.redirect,
+        continueUri: outgoingPaymentGrant.continue.uri,
+        continueToken: outgoingPaymentGrant.continue.access_token.value,
+        message: "User authorization required"
+      };
+    }
 
-    let finalizedOutgoingPaymentGrant;
-
-    const grantContinuationErrorMessage =
-      '\nThere was an error continuing the grant. You probably have not accepted the grant at the url (or it has already been used up, in which case, rerun the script).'
-
-      try {
-        finalizedOutgoingPaymentGrant = await client.grant.continue({
-          url: outgoingPaymentGrant.continue.uri,
-          accessToken: outgoingPaymentGrant.continue.access_token.value
-        })
-      } catch (err) {
-        if (err instanceof OpenPaymentsClientError) {
-          console.log(grantContinuationErrorMessage)
-          process.exit()
-        }
-
-        throw err
-      }
-
-      console.log(".......................This is the finalized outgoing payment grant: ", finalizedOutgoingPaymentGrant);
-
-      if (!isFinalizedGrant(finalizedOutgoingPaymentGrant)) {
-        console.log(
-          'There was an error continuing the grant. You probably have not accepted the grant at the url.'
-        )
-        process.exit()
-      }
-
-      console.log(
-        '\nStep 6: got finalized outgoing payment grant',
-        finalizedOutgoingPaymentGrant
-      )
-
-    // Create the outgoing payment
-    const outgoingPayment = await client.outgoingPayment.create(
-      {
-        url: sendingWallet.resourceServer,
-        accessToken: finalizedOutgoingPaymentGrant.access_token.value,
-      },
-      {
-        walletAddress: sendingWallet.id,
-        quoteId: quote.id,
-      },
-    );
-
-    console.log("Created outgoing payment: ", outgoingPayment.id);
-    return {
-      success: true,
-      paymentId: outgoingPayment.id,
-      state: outgoingPayment.state
-    };
+  
+    throw new Error("Expected authorization to be required for Miguel's wallet");
     
   } catch (error) {
     console.error("Error in createOutgoingPayment: ", error);
@@ -308,14 +338,14 @@ async function sendPayment(senderId, receiverId, amount) {
     // Step 3: Create the outgoing payment
     console.log("Step 2: Creating outgoing payment...");
     const outgoingPayment = await createOutgoingPayment(senderId, quote);
-    console.log("✓ Created outgoing payment:", outgoingPayment.id);
+    console.log("✓ Created outgoing payment");
 
     if (outgoingPayment.requiresInteraction) {
       return {
         success: true,
-        status: 'pending_interaction',
+        status: 'PENDING_AUTHORIZATION',
         requiresInteraction: true,
-        interactionUrl: outgoingPayment.interactionUrl,
+        authorizationUrl: outgoingPayment.interactionUrl,
         continueToken: outgoingPayment.continueToken,
         continueUri: outgoingPayment.continueUri,
         quoteId: quote.id,
@@ -325,6 +355,10 @@ async function sendPayment(senderId, receiverId, amount) {
         receiver: receiverId,
         debitAmount: `${quote.debitAmount.value/Math.pow(10, quote.debitAmount.assetScale)} ${quote.debitAmount.assetCode}`,
         receiveAmount: `${quote.receiveAmount.value/Math.pow(10, quote.receiveAmount.assetScale)} ${quote.receiveAmount.assetCode}`,
+        breakdown: {
+          toFamily: amount * 0.8,    // 80% to family
+          toSavings: amount * 0.2    // 20% to savings
+        },
         message: 'Payment setup complete - user authorization required'
       };
     }
@@ -364,6 +398,58 @@ async function sendPayment(senderId, receiverId, amount) {
   }
 }
 
+async function completePaymentAfterAuth(senderId, quoteId, continueUri, continueToken) {
+  try {
+    const client = await getClient(senderId);
+    const sendingWallet = await getWalletInfo(senderId);
+
+    console.log('Completing payment after authorization...');
+    console.log('Continue URI:', continueUri);
+    console.log('Quote ID:', quoteId);
+    
+    // Continue the grant with the authorization
+    const finalizedOutgoingPaymentGrant = await client.grant.continue({
+      url: continueUri,
+      accessToken: continueToken
+    });
+
+    console.log("Finalized grant after auth:", finalizedOutgoingPaymentGrant);
+
+    if (!isFinalizedGrant(finalizedOutgoingPaymentGrant)) {
+      throw new Error('Grant was not finalized after authorization');
+    }
+
+    // create the actual outgoing payment
+    const outgoingPayment = await client.outgoingPayment.create(
+      {
+        url: sendingWallet.resourceServer,
+        accessToken: finalizedOutgoingPaymentGrant.access_token.value,
+      },
+      {
+        walletAddress: sendingWallet.id,
+        quoteId: quoteId,
+      },
+    );
+
+    console.log("Payment created after auth:", outgoingPayment.id);
+    console.log("Payment state:", outgoingPayment.state);
+
+    return {
+      success: true,
+      paymentId: outgoingPayment.id,
+      state: outgoingPayment.state,
+      message: 'Payment completed successfully'
+    };
+
+  } catch (error) {
+    console.error("Error completing payment after auth:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
 
 export {
   getClient,
@@ -371,6 +457,7 @@ export {
   createQuote,
   createIncomingPayment,
   createOutgoingPayment,
-  sendPayment
+  sendPayment,
+  completePaymentAfterAuth
 };
 

@@ -6,8 +6,8 @@
     "walletAddress": "https://ilp.interledger-test.dev/test1part2",
     "keyId": "5e05a052-ea20-483b-b084-f1072d1ecd61",
     "privateKeyPath": "./keys/miguel-private.key",
-    "currentBalance": 20.540000000000873,
-    "totalSent": 15230,
+    "currentBalance": 4.540000000000873,
+    "totalSent": 15246,
     "avgSavingsRate": 4.2,
     "transactions": [
       {
@@ -110,6 +110,40 @@
         },
         "timestamp": "2025-09-20T22:39:08.316Z",
         "status": "completed"
+      },
+      {
+        "id": "https://ilp.interledger-test.dev/outgoing-payments/c78e9f97-1ffc-4719-a101-223e56a40b47",
+        "senderWalletAddress": "https://ilp.interledger-test.dev/test1part2",
+        "type": "sent",
+        "amount": 10,
+        "to": "Dominga García",
+        "breakdown": {
+          "amount": 10,
+          "savingsPercent": 4,
+          "toFamily": 9.4,
+          "toSavings": 0.4,
+          "toIlu": 0.2,
+          "totalFee": 0.6000000000000001
+        },
+        "timestamp": "2025-09-22T19:09:55.255Z",
+        "status": "completed"
+      },
+      {
+        "id": "https://ilp.interledger-test.dev/outgoing-payments/675421f8-6b99-4447-8bb4-4948209920be",
+        "senderWalletAddress": "https://ilp.interledger-test.dev/test1part2",
+        "type": "sent",
+        "amount": 6,
+        "to": "Dominga García",
+        "breakdown": {
+          "amount": 6,
+          "savingsPercent": 4,
+          "toFamily": 5.64,
+          "toSavings": 0.24,
+          "toIlu": 0.12,
+          "totalFee": 0.36
+        },
+        "timestamp": "2025-09-23T02:45:57.435Z",
+        "status": "completed"
       }
     ]
   },
@@ -120,9 +154,9 @@
     "walletAddress": "https://ilp.interledger-test.dev/dominga-wallet",
     "keyId": "39d7315c-2e1c-4b8d-9470-ef719a48e0cf",
     "privateKeyPath": "./keys/dominga-private.key",
-    "totalReceived": 14100.2,
-    "totalSaved": 897.2,
-    "currentBalance": 12230.2,
+    "totalReceived": 14115.24,
+    "totalSaved": 897.84,
+    "currentBalance": 12245.24,
     "transactions": [
       {
         "id": "OP_1757654125318",
@@ -175,6 +209,24 @@
         "amount": 75.2,
         "from": "Miguel",
         "timestamp": "2025-09-20T22:39:08.316Z",
+        "status": "completed"
+      },
+      {
+        "id": "https://ilp.interledger-test.dev/outgoing-payments/c78e9f97-1ffc-4719-a101-223e56a40b47",
+        "receiverWalletAddress": "https://ilp.interledger-test.dev/dominga-wallet",
+        "type": "received",
+        "amount": 9.4,
+        "from": "Miguel",
+        "timestamp": "2025-09-22T19:09:55.255Z",
+        "status": "completed"
+      },
+      {
+        "id": "https://ilp.interledger-test.dev/outgoing-payments/675421f8-6b99-4447-8bb4-4948209920be",
+        "receiverWalletAddress": "https://ilp.interledger-test.dev/dominga-wallet",
+        "type": "received",
+        "amount": 5.64,
+        "from": "Miguel",
+        "timestamp": "2025-09-23T02:45:57.435Z",
         "status": "completed"
       }
     ]

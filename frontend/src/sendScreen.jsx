@@ -261,60 +261,77 @@ const SendScreen = () => {
     const amountToSend = Number(form.cantidad);
 
     try {
-      // Llamada real al backend para realizar la transferencia
+      // real backend calling to execute transactions
       const result = await apiService.sendMoney('miguel', form.destinatario, amountToSend);
       
-      // Debug temporal - quitar después
+      // debug
       console.log('Resultado del backend:', result);
       
       if (result.success) {
         setPaymentResult(result);
         
         if (result.status === 'PENDING_AUTHORIZATION') {
-          // Automáticamente abrir el link de autorización
           setPaymentState('authorization');
           
-          // Abrir inmediatamente la ventana de autorización
-          setTimeout(() => {
-            const authWindow = window.open(
-              result.authorizationUrl,
-              'authorization',
-              'width=600,height=700,scrollbars=yes,resizable=yes'
-            );
+          // FIX: Check if we have a valid authorization URL
+          if (result.authorizationUrl) {
+            const authUrl = result.authorizationUrl;
+            console.log('Opening authorization window with URL:', authUrl);
+            
+            // Open authorization window immediately
+            const authWindow = window.open(authUrl, 'authorization', 'width=600,height=700');
 
-            // Monitorear cuando se cierre la ventana
+            // Check if window opened successfully
+            if (!authWindow) {
+              setErrorMsg('No se pudo abrir la ventana de autorización. Verifica que no esté bloqueada por el navegador.');
+              setPaymentState('error');
+              return;
+            }
+
+            // Monitor when the window closes
             const checkClosed = setInterval(() => {
               if (authWindow.closed) {
                 clearInterval(checkClosed);
                 
-                // Después de cerrar, verificar el estado del pago
+                console.log('Authorization window closed, checking payment status...');
+                // After closing, verify payment status
                 setPaymentState('processing');
                 
                 setTimeout(async () => {
                   try {
-                    // Verificar si el pago se completó
-                    const newBalance = await apiService.getUserBalance('miguel');
-                    
-                    // Si el balance cambió, el pago fue exitoso
-                    if (newBalance < availableBalance) {
+                    console.log('Completing payment with data:', result);
+                    const completionResult = await apiService.completePayment(result);
+                    console.log('Payment completion result:', completionResult);
+
+                    if (completionResult.success) {
+                      console.log('Payment completed successfully!');
+                      // Check if payment completed by checking balance
+                      const newBalance = await apiService.getUserBalance('miguel');
+                      console.log('Updated balance:', newBalance);
+
                       setPaymentState('completed');
                       setAvailableBalance(newBalance);
                       setBalanceUpdated(true);
                       setTimeout(() => setBalanceUpdated(false), 600);
+
                     } else {
-                      // Si no cambió, mostrar error
                       setPaymentState('error');
-                      setErrorMsg('El pago no se completó. Por favor intenta de nuevo.');
+                      setErrorMsg('El pago no se completó. Por favor verifica si autorizaste correctamente e intenta de nuevo.');
                     }
+                    
                   } catch (error) {
+                    console.error('Error checking payment status:', error);
                     setPaymentState('error');
-                    setErrorMsg('Error verificando el estado del pago');
+                    setErrorMsg('Error verificando el estado del pago. Por favor verifica tu saldo manualmente.');
                   }
-                }, 2000); // Esperar 2 segundos para que se procese el pago
+                }, 2000); // Wait 3 seconds for payment to process
               }
             }, 1000);
             
-          }, 500); // Pequeña pausa antes de abrir la ventana
+          } else {
+            setPaymentState('error');
+            setErrorMsg('No se recibió URL de autorización del servidor.');
+          }
           
         } else if (result.status === 'COMPLETED') {
           // Payment completed immediately
